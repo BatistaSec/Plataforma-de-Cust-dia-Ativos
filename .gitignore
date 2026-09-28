@@ -1,0 +1,25 @@
+# Java/Spring Boot
+target/
+build/
+!.mvn/wrapper/maven-wrapper.jar
+
+### IDEs ###
+.idea/
+*.iws
+*.iml
+*.ipr
+.vscode/
+.classpath
+.project
+.settings/
+
+### Logs & Temp ###
+*.log
+docker-compose.override.yml
+.DS_Store
+
+### Compiled files ###
+*.class
+*.jar
+*.war
+*.ear
