@@ -12,7 +12,7 @@ build/
 .classpath
 .project
 .settings/
-.plano_de_projeto.md
+plano_de_projeto.md
 
 ### Logs & Temp ###
 *.log

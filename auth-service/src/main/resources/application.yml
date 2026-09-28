@@ -1,0 +1,23 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: auth-service
+  datasource:
+    url: jdbc:postgresql://localhost:5432/custody_db
+    username: custody_user
+    password: custody_password
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update # Usamos update apenas para agilizar o DEV local
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+# Configurações do nosso JWT
+jwt:
+  secret: Y2hhdmUtc2VjcmV0YS1tdWl0by1ncmFuZGUtZS1zZWd1cmEtcGFyYS10b2tlbnMtand0LWN1c3RvZHk=
+  expiration: 86400000 # 1 dia em milissegundos
