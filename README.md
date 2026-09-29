@@ -3,20 +3,29 @@
 Plataforma de custódia de ativos construída com **Java 21, Spring Boot, Clean Architecture e Arquitetura Orientada a Eventos (EDA)**.
 
 ## 🚀 Tecnologias e Stack
-- **Backend**: Java 21, Spring Boot, Spring Security, JPA.
-- **Mensageria e Banco de Dados**: Kafka, PostgreSQL, Redis.
-- **Arquitetura**: Clean Architecture, SOLID, DDD, Microservices.
-- **Infraestrutura Local**: Docker & Docker Compose.
+- **Backend**: Java 21, Spring Boot, Spring Security, JPA, PostgreSQL, Redis, Kafka
+- **Qualidade/Testes**: JUnit, Mockito, Testcontainers, Integration Tests, E2E
+- **Arquitetura & Design**: Clean Architecture, SOLID, DDD, Microservices, Event-driven
+- **Cloud & Infraestrutura**: AWS, Docker, ECS, S3
+- **DevOps**: GitHub Actions, CI/CD, SonarQube
+- **Observabilidade**: Spring Boot Actuator, OpenTelemetry, Prometheus, Grafana, CloudWatch
 
-## 🛠️ Como rodar a infraestrutura local
-Certifique-se de ter o Docker e Docker Compose instalados.
+## 🎯 Fases de Desenvolvimento (Status)
 
-Na raiz do projeto, execute:
-```bash
-docker-compose up -d
-```
+- [x] **Fase 1: Infraestrutura Base** (Docker Compose com PostgreSQL, Redis e Kafka).
+- [x] **Fase 2: Auth Service** (Implementação base com JWT, Spring Security e rotas de login/registro).
+- [ ] **Fase 3: API Gateway** (Configuração de rotas e validação de JWT via Gateway).
+- [ ] **Fase 4: Custody Service** (Core da aplicação, DDD, Clean Architecture e emissão de eventos).
+- [ ] **Fase 5: Event Processor** (Consumo de eventos Kafka e integrações assíncronas).
+- [ ] **Fase 6: Observabilidade & DevOps** (Testes automatizados, pipelines CI/CD, Grafana).
 
-Isto subirá os seguintes serviços:
-- **PostgreSQL** (porta 5432)
-- **Redis** (porta 6379)
-- **Kafka** em modo KRaft (porta 9092)
+## 🛠️ Como rodar localmente
+
+1. Suba a infraestrutura base (Banco de Dados, Redis e Mensageria):
+   ```bash
+   docker-compose up -d
+   ```
+2. Acesse o diretório do serviço desejado (ex: `auth-service`) e rode o Spring Boot:
+   ```bash
+   .\mvnw.cmd spring-boot:run
+   ```
