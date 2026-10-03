@@ -1,17 +1,17 @@
 package com.custody.api_gateway.util;
 
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
-import java.nio.charset.StandardCharsets;
 
 @Component
 public class JwtUtil {
 
-    @Value("${jwt.secret:aVeryLongSecretKeyForJwtSignatureThatIsAtLeast256BitsLong123!@#}")
+    @Value("${jwt.secret:defaultSecretKey12345678901234567890}")
     private String secret;
 
     public void validateToken(final String token) {
@@ -19,6 +19,7 @@ public class JwtUtil {
     }
 
     private SecretKey getSigningKey() {
-        return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+        byte[] keyBytes = Decoders.BASE64.decode(secret);
+        return Keys.hmacShaKeyFor(keyBytes);
     }
 }

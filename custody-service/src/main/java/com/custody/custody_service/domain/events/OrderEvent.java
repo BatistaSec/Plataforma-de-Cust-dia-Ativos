@@ -1,0 +1,46 @@
+package com.custody.custody_service.domain.events;
+
+import com.custody.custody_service.domain.models.OrderStatus;
+import com.custody.custody_service.domain.models.OrderType;
+
+import java.math.BigDecimal;
+import java.util.UUID;
+
+public class OrderEvent {
+    private UUID orderId;
+    private UUID portfolioId;
+    private UUID assetId;
+    private OrderType type;
+    private BigDecimal quantity;
+    private OrderStatus status;
+
+    public OrderEvent() {}
+
+    public OrderEvent(UUID orderId, UUID portfolioId, UUID assetId, OrderType type, BigDecimal quantity, OrderStatus status) {
+        this.orderId = orderId;
+        this.portfolioId = portfolioId;
+        this.assetId = assetId;
+        this.type = type;
+        this.quantity = quantity;
+        this.status = status;
+    }
+
+    // Getters and Setters
+    public UUID getOrderId() { return orderId; }
+    public void setOrderId(UUID orderId) { this.orderId = orderId; }
+
+    public UUID getPortfolioId() { return portfolioId; }
+    public void setPortfolioId(UUID portfolioId) { this.portfolioId = portfolioId; }
+
+    public UUID getAssetId() { return assetId; }
+    public void setAssetId(UUID assetId) { this.assetId = assetId; }
+
+    public OrderType getType() { return type; }
+    public void setType(OrderType type) { this.type = type; }
+
+    public BigDecimal getQuantity() { return quantity; }
+    public void setQuantity(BigDecimal quantity) { this.quantity = quantity; }
+
+    public OrderStatus getStatus() { return status; }
+    public void setStatus(OrderStatus status) { this.status = status; }
+}
