@@ -1,6 +1,5 @@
 package com.custody.auth_service;
 
-
 import com.custody.auth_service.domain.models.Role;
 import com.custody.auth_service.domain.models.User;
 import com.custody.auth_service.domain.repositories.UserRepository;
@@ -52,8 +51,7 @@ class AuthServiceApplicationTests {
 	void shouldRegisterUserSuccessfully() {
 		Map<String, String> request = Map.of(
 				"email", "test@custody.com",
-				"password", "secret123"
-		);
+				"password", "secret123");
 
 		ResponseEntity<Map> response = restTemplate.postForEntity("/api/v1/auth/register", request, Map.class);
 
@@ -73,8 +71,7 @@ class AuthServiceApplicationTests {
 
 		Map<String, String> request = Map.of(
 				"email", "login@custody.com",
-				"password", "password123"
-		);
+				"password", "password123");
 
 		ResponseEntity<Map> response = restTemplate.postForEntity("/api/v1/auth/login", request, Map.class);
 
@@ -90,11 +87,11 @@ class AuthServiceApplicationTests {
 
 		Map<String, String> request = Map.of(
 				"email", "wrong@custody.com",
-				"password", "wrongpassword"
-		);
+				"password", "wrongpassword");
 
 		ResponseEntity<Map> response = restTemplate.postForEntity("/api/v1/auth/login", request, Map.class);
 
 		assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
 	}
+
 }
