@@ -16,7 +16,7 @@ Plataforma de custódia de ativos construída com **Java 21, Spring Boot, Clean 
 - [x] **Fase 2: Auth Service** (Implementação base com JWT, Spring Security e rotas de login/registro).
 - [x] **Fase 3: API Gateway** (Configuração de rotas e validação de JWT via Gateway).
 - [x] **Fase 4: Custody Service** (Core da aplicação, DDD, Clean Architecture e emissão de eventos).
-- [] **Fase 5: Event Processor** (Consumo de eventos Kafka e integrações assíncronas).
+- [ ] **Fase 5: Event Processor** (Consumo de eventos Kafka e integrações assíncronas).
 - [ ] **Fase 6: Observabilidade & DevOps** (Testes automatizados, pipelines CI/CD, Grafana).
 
 ## 🛠️ Como rodar localmente
