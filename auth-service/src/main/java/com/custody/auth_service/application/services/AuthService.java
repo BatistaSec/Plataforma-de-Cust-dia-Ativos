@@ -28,7 +28,12 @@ public class AuthService {
     }
 
     public Map<String, String> register(String email, String password) {
-        var user = new User(email, passwordEncoder.encode(password), Role.USER);
+        var user = new User(email, password, Role.USER);
+        if(password.length() < 8) {
+            throw new IllegalArgumentException("digite uma senha maior que 8 caracteres");
+        }else{
+            user.setPassword(passwordEncoder.encode(password));
+        }
         repository.save(user);
         var jwtToken = jwtService.generateToken(user);
         return Map.of("token", jwtToken);
@@ -36,7 +41,7 @@ public class AuthService {
 
     public Map<String, String> authenticate(String email, String password) {
         authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(email, password));
+        new UsernamePasswordAuthenticationToken(email, password));
         var user = repository.findByEmail(email).orElseThrow();
         var jwtToken = jwtService.generateToken(user);
         return Map.of("token", jwtToken);

@@ -1,6 +1,8 @@
 package com.custody.auth_service.domain.models;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Size;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -18,6 +20,7 @@ public class User implements UserDetails {
     private UUID id;
 
     @Column(unique = true, nullable = false)
+    @Email(message = "O email deve ser válido")
     private String email;
 
     @Column(nullable = false)
@@ -47,7 +50,6 @@ public class User implements UserDetails {
     public Role getRole() { return role; }
     public void setRole(Role role) { this.role = role; }
 
-    // --- Implementações do Spring Security UserDetails ---
     
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

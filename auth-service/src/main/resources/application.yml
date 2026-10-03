@@ -5,7 +5,7 @@ spring:
   application:
     name: auth-service
   datasource:
-    url: jdbc:postgresql://localhost:5432/custody_db
+    url: jdbc:postgresql://127.0.0.1:15432/custody_db
     username: custody_user
     password: custody_password
     driver-class-name: org.postgresql.Driver
