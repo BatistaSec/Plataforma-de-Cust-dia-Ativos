@@ -29,6 +29,8 @@ spring:
           uri: http://localhost:8082
           predicates:
             - Path=/api/v1/custody/**
+          filters:
+            - AuthenticationFilter
 
 # Configuração de Observabilidade e Endpoints
 management:
