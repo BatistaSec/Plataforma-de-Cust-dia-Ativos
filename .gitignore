@@ -24,3 +24,5 @@ docker-compose.override.yml
 *.jar
 *.war
 *.ear
+
+DEVOPS_AWS_DEPLOY.md
