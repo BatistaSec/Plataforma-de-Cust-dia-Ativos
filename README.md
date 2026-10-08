@@ -10,14 +10,23 @@ Plataforma de custódia de ativos construída com **Java 21, Spring Boot, Clean 
 - **DevOps**: GitHub Actions, CI/CD, SonarQube
 - **Observabilidade**: Spring Boot Actuator, OpenTelemetry, Prometheus, Grafana, CloudWatch
 
+## 🏗️ Estrutura de Microsserviços
+
+A plataforma é desenhada como um ecossistema assíncrono e robusto, composto por 4 microsserviços principais:
+
+1. 🚪 **`api-gateway` (Porta: 8080)**: Ponto único de entrada (Spring Cloud Gateway, WebFlux). Roteia as requisições e atua como uma barreira inicial.
+2. 🛡️ **`auth-service` (Porta: 8081)**: Serviço de Autenticação e Registro. Usa Spring Security e JWT para gerar tokens de acesso. Mantém isolamento dos usuários e perfis.
+3. 💼 **`custody-service` (Porta: 8082)**: Core do negócio (DDD). Gerencia Ativos, Portfólios e a criação de Ordens de Custódia. Usa **Redis** para cache/performance e **Kafka** (Producer) para publicar eventos assíncronos (`OrderEvent`).
+4. ⚙️ **`event-processor` (Porta: 8083)**: Worker/Processador assíncrono. Consome os eventos do Kafka de forma resiliente, processa as ordens aplicando regras de idempotência, salva o estado definitivo no PostgreSQL e publica eventos de processamento concluído (`ProcessedOrderEvent`).
+
 ## 🎯 Fases de Desenvolvimento (Status)
 
 - [x] **Fase 1: Infraestrutura Base** (Docker Compose com PostgreSQL, Redis e Kafka).
-- [x] **Fase 2: Auth Service** (Implementação base com JWT, Spring Security e rotas de login/registro).
+- [x] **Fase 2: Auth Service** (Implementação base aplicando DDD, JWT, Spring Security e rotas de login/registro).
 - [x] **Fase 3: API Gateway** (Configuração de rotas e validação de JWT via Gateway).
 - [x] **Fase 4: Custody Service** (Core da aplicação, DDD, Clean Architecture e emissão de eventos).
-- [ ] **Fase 5: Event Processor** (Consumo de eventos Kafka e integrações assíncronas).
-- [ ] **Fase 6: Observabilidade & DevOps** (Testes automatizados, pipelines CI/CD, Grafana).
+- [x] **Fase 5: Event Processor** (Consumo de eventos Kafka, idempotência, persistência JPA, e produção de eventos de retorno).
+- [ ] **Fase 6: Observabilidade & DevOps** (Testes automatizados, pipelines CI/CD, Grafana, Prometheus).
 
 ## 🛠️ Como rodar localmente
 
@@ -25,7 +34,11 @@ Plataforma de custódia de ativos construída com **Java 21, Spring Boot, Clean 
    ```bash
    docker-compose up -d
    ```
-2. Acesse o diretório do serviço desejado (ex: `auth-service`) e rode o Spring Boot:
+2. Compile os projetos (opcional, pode ser feito pela IDE):
+   ```bash
+   .\mvnw.cmd clean install
+   ```
+3. Suba os serviços usando sua IDE (IntelliJ / VSCode) ou via linha de comando dentro de cada diretório:
    ```bash
    .\mvnw.cmd spring-boot:run
    ```

@@ -1,6 +1,6 @@
 package com.custody.auth_service.infrastructure.config;
 
-import com.custody.auth_service.domain.repositories.UserRepository;
+import com.custody.auth_service.infrastructure.persistence.repositories.SpringDataUserRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -15,9 +15,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @Configuration
 public class ApplicationConfig {
 
-    private final UserRepository repository;
+    private final SpringDataUserRepository repository;
 
-    public ApplicationConfig(UserRepository repository) {
+    public ApplicationConfig(SpringDataUserRepository repository) {
         this.repository = repository;
     }
 

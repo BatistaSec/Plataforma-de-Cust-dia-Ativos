@@ -1,7 +1,7 @@
 package com.custody.custody_service.domain.events;
 
-import com.custody.custody_service.domain.models.OrderStatus;
-import com.custody.custody_service.domain.models.OrderType;
+import com.custody.custody_service.domain.enums.OrderStatus;
+import com.custody.custody_service.domain.enums.OrderType;
 
 import java.math.BigDecimal;
 import java.util.UUID;

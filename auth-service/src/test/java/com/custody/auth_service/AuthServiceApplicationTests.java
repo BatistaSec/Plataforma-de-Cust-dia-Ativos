@@ -1,8 +1,8 @@
 package com.custody.auth_service;
 
-import com.custody.auth_service.domain.models.Role;
-import com.custody.auth_service.domain.models.User;
-import com.custody.auth_service.domain.repositories.UserRepository;
+import com.custody.auth_service.domain.enums.Role;
+import com.custody.auth_service.infrastructure.persistence.entities.UserEntity;
+import com.custody.auth_service.infrastructure.persistence.repositories.SpringDataUserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +32,7 @@ class AuthServiceApplicationTests {
 	private TestRestTemplate restTemplate;
 
 	@Autowired
-	private UserRepository userRepository;
+	private SpringDataUserRepository userRepository;
 
 	@Autowired
 	private PasswordEncoder passwordEncoder;
@@ -59,14 +59,14 @@ class AuthServiceApplicationTests {
 		assertNotNull(response.getBody());
 		assertTrue(response.getBody().containsKey("token"));
 
-		User user = userRepository.findByEmail("test@custody.com").orElse(null);
+		UserEntity user = userRepository.findByEmail("test@custody.com").orElse(null);
 		assertNotNull(user);
 		assertEquals(Role.USER, user.getRole());
 	}
 
 	@Test
 	void shouldAuthenticateUserSuccessfully() {
-		User user = new User("login@custody.com", passwordEncoder.encode("password123"), Role.USER);
+		UserEntity user = new UserEntity(null, "login@custody.com", passwordEncoder.encode("password123"), Role.USER);
 		userRepository.save(user);
 
 		Map<String, String> request = Map.of(
@@ -82,7 +82,7 @@ class AuthServiceApplicationTests {
 
 	@Test
 	void shouldFailAuthenticationWithWrongPassword() {
-		User user = new User("wrong@custody.com", passwordEncoder.encode("password123"), Role.USER);
+		UserEntity user = new UserEntity(null, "wrong@custody.com", passwordEncoder.encode("password123"), Role.USER);
 		userRepository.save(user);
 
 		Map<String, String> request = Map.of(

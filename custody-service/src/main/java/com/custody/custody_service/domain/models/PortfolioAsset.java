@@ -1,31 +1,26 @@
 package com.custody.custody_service.domain.models;
 
-import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.util.UUID;
 
-@Entity
-@Table(name = "portfolio_assets")
+
 public class PortfolioAsset {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "portfolio_id", nullable = false)
     private Portfolio portfolio;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "asset_id", nullable = false)
     private Asset asset;
-
-    @Column(nullable = false)
     private BigDecimal quantity;
 
     public PortfolioAsset() {}
 
     public PortfolioAsset(Portfolio portfolio, Asset asset, BigDecimal quantity) {
+        this.portfolio = portfolio;
+        this.asset = asset;
+        this.quantity = quantity;
+    }
+
+    public PortfolioAsset(UUID id, Portfolio portfolio, Asset asset, BigDecimal quantity) {
+        this.id = id;
         this.portfolio = portfolio;
         this.asset = asset;
         this.quantity = quantity;

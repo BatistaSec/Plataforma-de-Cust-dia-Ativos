@@ -1,12 +1,14 @@
 package com.custody.custody_service;
 
-import com.custody.custody_service.domain.models.Asset;
-import com.custody.custody_service.domain.models.CustodyOrder;
-import com.custody.custody_service.domain.models.OrderType;
-import com.custody.custody_service.domain.models.Portfolio;
-import com.custody.custody_service.domain.repositories.AssetRepository;
-import com.custody.custody_service.domain.repositories.CustodyOrderRepository;
-import com.custody.custody_service.domain.repositories.PortfolioRepository;
+import com.custody.custody_service.domain.enums.OrderType;
+import com.custody.custody_service.infrastructure.persistence.entities.AssetEntity;
+import com.custody.custody_service.infrastructure.persistence.entities.PortfolioEntity;
+import com.custody.custody_service.infrastructure.persistence.repositories.SpringDataAssetRepository;
+import com.custody.custody_service.infrastructure.persistence.repositories.SpringDataCustodyOrderRepository;
+import com.custody.custody_service.infrastructure.persistence.repositories.SpringDataPortfolioRepository;
+import com.custody.custody_service.presentation.response.AssetResponse;
+import com.custody.custody_service.presentation.response.CustodyOrderResponse;
+import com.custody.custody_service.presentation.response.PortfolioResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,13 +50,13 @@ class CustodyServiceApplicationTests {
 	private TestRestTemplate restTemplate;
 
 	@Autowired
-	private PortfolioRepository portfolioRepository;
+	private SpringDataPortfolioRepository portfolioRepository;
 
 	@Autowired
-	private AssetRepository assetRepository;
+	private SpringDataAssetRepository assetRepository;
 
 	@Autowired
-	private CustodyOrderRepository custodyOrderRepository;
+	private SpringDataCustodyOrderRepository custodyOrderRepository;
 
 	@BeforeEach
 	void setUp() {
@@ -74,27 +76,27 @@ class CustodyServiceApplicationTests {
 	void shouldCreatePortfolioSuccessfullyaddUserId() {
 		UUID userId = UUID.randomUUID();
 		
-		ResponseEntity<Portfolio> response = restTemplate.postForEntity(
+		ResponseEntity<PortfolioResponse> response = restTemplate.postForEntity(
 				"/api/v1/custody/portfolios?userId=" + userId, 
 				null, 
-				Portfolio.class
+				PortfolioResponse.class
 		);
 
 		assertEquals(HttpStatus.OK, response.getStatusCode());
 		assertNotNull(response.getBody());
 		assertEquals(userId, response.getBody().getUserId());
 	}
-
-
 
 	@Test
 	void shouldGetPortfolioSuccessddUserId() {
 		UUID userId = UUID.randomUUID();
-		Portfolio portfolio = portfolioRepository.save(new Portfolio(userId));
+		PortfolioEntity portfolio = new PortfolioEntity();
+		portfolio.setUserId(userId);
+		portfolioRepository.save(portfolio);
 
-		ResponseEntity<Portfolio> response = restTemplate.getForEntity(
+		ResponseEntity<PortfolioResponse> response = restTemplate.getForEntity(
 				"/api/v1/custody/portfolios/user/" + userId,
-				Portfolio.class
+				PortfolioResponse.class
 		);
 
 		assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -102,14 +104,12 @@ class CustodyServiceApplicationTests {
 		assertEquals(userId, response.getBody().getUserId());
 	}
 
-
-
 	@Test
 	void shouldCreateAssetSuccessfully() {
-		ResponseEntity<Asset> response = restTemplate.postForEntity(
+		ResponseEntity<AssetResponse> response = restTemplate.postForEntity(
 				"/api/v1/custody/assets?ticker=AAPL&name=Apple Inc", 
 				null, 
-				Asset.class
+				AssetResponse.class
 		);
 
 		assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -119,12 +119,19 @@ class CustodyServiceApplicationTests {
 
 	@Test
 	void shouldGetAllAssetsSuccessfully() {
-		assetRepository.save(new Asset("ITUB4", "Itaú Unibanco"));
-		assetRepository.save(new Asset("BBDC4", "Bradesco"));
+		AssetEntity asset1 = new AssetEntity();
+		asset1.setTicker("ITUB4");
+		asset1.setName("Itaú Unibanco");
+		assetRepository.save(asset1);
 
-		ResponseEntity<Asset[]> response = restTemplate.getForEntity(
+		AssetEntity asset2 = new AssetEntity();
+		asset2.setTicker("BBDC4");
+		asset2.setName("Bradesco");
+		assetRepository.save(asset2);
+
+		ResponseEntity<AssetResponse[]> response = restTemplate.getForEntity(
 				"/api/v1/custody/assets",
-				Asset[].class
+				AssetResponse[].class
 		);
 
 		assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -135,9 +142,14 @@ class CustodyServiceApplicationTests {
 	@Test
 	void shouldCreateOrderSuccessfully() {
 		UUID userId = UUID.randomUUID();
-		Portfolio portfolio = portfolioRepository.save(new Portfolio(userId));
+		PortfolioEntity portfolio = new PortfolioEntity();
+		portfolio.setUserId(userId);
+		portfolio = portfolioRepository.save(portfolio);
 
-		Asset asset = assetRepository.save(new Asset("PETR4", "Petrobras"));
+		AssetEntity asset = new AssetEntity();
+		asset.setTicker("PETR4");
+		asset.setName("Petrobras");
+		asset = assetRepository.save(asset);
 
 		Map<String, Object> request = Map.of(
 				"portfolioId", portfolio.getId(),
@@ -146,11 +158,10 @@ class CustodyServiceApplicationTests {
 				"quantity", 10.5
 		);
 
-		
-		ResponseEntity<CustodyOrder> response = restTemplate.postForEntity(
+		ResponseEntity<CustodyOrderResponse> response = restTemplate.postForEntity(
 				"/api/v1/custody/orders", 
 				request, 
-				CustodyOrder.class
+				CustodyOrderResponse.class
 		);
 
 		assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -158,8 +169,4 @@ class CustodyServiceApplicationTests {
 		assertEquals(OrderType.BUY, response.getBody().getType());
 		assertEquals(new BigDecimal("10.5"), response.getBody().getQuantity());
 	}
-
-
-
-
 }

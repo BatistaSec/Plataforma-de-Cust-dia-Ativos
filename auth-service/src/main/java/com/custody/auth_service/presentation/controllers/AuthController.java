@@ -1,28 +1,40 @@
 package com.custody.auth_service.presentation.controllers;
 
-import com.custody.auth_service.application.services.AuthService;
+import com.custody.auth_service.application.dto.AuthInput;
+import com.custody.auth_service.application.dto.RegisterInput;
+import com.custody.auth_service.application.dto.AuthOutput;
+import com.custody.auth_service.application.usecases.AuthenticateUserUseCase;
+import com.custody.auth_service.application.usecases.RegisterUserUseCase;
+import com.custody.auth_service.presentation.request.AuthRequest;
+import com.custody.auth_service.presentation.response.AuthResponse;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/auth")
 public class AuthController {
 
-    private final AuthService authService;
+    private final RegisterUserUseCase registerUserUseCase;
+    private final AuthenticateUserUseCase authenticateUserUseCase;
 
-    public AuthController(AuthService authService) {
-        this.authService = authService;
+    public AuthController(RegisterUserUseCase registerUserUseCase,
+                          AuthenticateUserUseCase authenticateUserUseCase) {
+        this.registerUserUseCase = registerUserUseCase;
+        this.authenticateUserUseCase = authenticateUserUseCase;
     }
 
     @PostMapping("/register")
-    public ResponseEntity<Map<String, String>> register(@RequestBody Map<String, String> request) {
-        return ResponseEntity.ok(authService.register(request.get("email"), request.get("password")));
+    public ResponseEntity<AuthResponse> register(@Valid @RequestBody AuthRequest request) {
+        var input = new RegisterInput(request.getEmail(), request.getPassword());
+        AuthOutput output = registerUserUseCase.execute(input);
+        return ResponseEntity.ok(new AuthResponse(output.getToken()));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<Map<String, String>> authenticate(@RequestBody Map<String, String> request) {
-        return ResponseEntity.ok(authService.authenticate(request.get("email"), request.get("password")));
+    public ResponseEntity<AuthResponse> authenticate(@Valid @RequestBody AuthRequest request) {
+        var input = new AuthInput(request.getEmail(), request.getPassword());
+        AuthOutput output = authenticateUserUseCase.execute(input);
+        return ResponseEntity.ok(new AuthResponse(output.getToken()));
     }
 }

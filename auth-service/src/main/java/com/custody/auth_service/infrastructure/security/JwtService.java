@@ -33,13 +33,21 @@ public class JwtService {
     }
 
     public String generateToken(UserDetails userDetails) {
-        return generateToken(new HashMap<>(), userDetails);
+        return generateToken(new HashMap<>(), userDetails.getUsername());
     }
 
     public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
+        return generateToken(extraClaims, userDetails.getUsername());
+    }
+
+    /**
+     * Gera token recebendo claims extras e o subject (username/email).
+     * Este método não depende de UserDetails — pode ser chamado pela camada de aplicação.
+     */
+    public String generateToken(Map<String, Object> extraClaims, String subject) {
         return Jwts.builder()
                 .claims(extraClaims)
-                .subject(userDetails.getUsername())
+                .subject(subject)
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + jwtExpiration))
                 .signWith(getSignInKey(), Jwts.SIG.HS256)

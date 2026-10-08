@@ -1,75 +1,46 @@
 package com.custody.auth_service.domain.models;
 
-import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.Size;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
+import com.custody.auth_service.domain.enums.Role;
+import com.custody.auth_service.domain.exceptions.InvalidPasswordException;
+import com.custody.auth_service.domain.valueobjects.Email;
 
-import java.util.Collection;
-import java.util.List;
 import java.util.UUID;
 
-@Entity
-@Table(name = "users")
-public class User implements UserDetails {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+public class User {
+
     private UUID id;
-
-    @Column(unique = true, nullable = false)
-    @Email(message = "O email deve ser válido")
-    private String email;
-
-    @Column(nullable = false)
+    private Email email;
     private String password;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private Role role;
 
-    public User() {}
-
-    public User(String email, String password, Role role) {
+    public User(Email email, String password, Role role) {
+        validatePassword(password);
         this.email = email;
         this.password = password;
         this.role = role;
     }
 
+    public User(UUID id, Email email, String password, Role role) {
+        this.id = id;
+        this.email = email;
+        this.password = password;
+        this.role = role;
+    }
+
+    private void validatePassword(String password) {
+        if (password == null || password.length() < 8) {
+            throw new InvalidPasswordException("A senha deve ter pelo menos 8 caracteres");
+        }
+    }
+
+    // Getters
     public UUID getId() { return id; }
-    public void setId(UUID id) { this.id = id; }
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
-    
-    @Override
+    public Email getEmail() { return email; }
     public String getPassword() { return password; }
-    public void setPassword(String password) { this.password = password; }
-    
     public Role getRole() { return role; }
-    public void setRole(Role role) { this.role = role; }
 
-    
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
-    }
-
-    @Override
-    public String getUsername() {
-        return email;
-    }
-
-    @Override
-    public boolean isAccountNonExpired() { return true; }
-
-    @Override
-    public boolean isAccountNonLocked() { return true; }
-
-    @Override
-    public boolean isCredentialsNonExpired() { return true; }
-
-    @Override
-    public boolean isEnabled() { return true; }
+    // Setters controlados
+    public void setId(UUID id) { this.id = id; }
+    public void setPassword(String encodedPassword) { this.password = encodedPassword; }
 }
