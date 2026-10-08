@@ -1,23 +1,27 @@
-name: CI/CD Pipeline
+name: CI - Event Processor
 
 on:
   push:
     branches:
       - main
+    paths:
+      - 'event-processor/**'
+      - 'pom.xml'
   pull_request:
     branches:
       - main
+    paths:
+      - 'event-processor/**'
+      - 'pom.xml'
 
 jobs:
-  build-and-analyze:
-    name: Build and Test
+  build-and-test:
+    name: Build and Test Event Processor
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # Profundidade 0 é necessária para a análise correta do SonarQube
 
       - name: Setup Java 21
         uses: actions/setup-java@v4
@@ -27,5 +31,4 @@ jobs:
           cache: 'maven'
 
       - name: Build and Test
-        run: mvn clean verify
-
+        run: mvn -pl event-processor -am clean verify
