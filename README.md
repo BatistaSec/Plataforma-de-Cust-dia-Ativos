@@ -27,6 +27,23 @@ A plataforma é desenhada como um ecossistema assíncrono e robusto, composto po
 - [x] **Fase 4: Custody Service** (Core da aplicação, DDD, Clean Architecture e emissão de eventos).
 - [x] **Fase 5: Event Processor** (Consumo de eventos Kafka, idempotência, persistência JPA, e produção de eventos de retorno).
 - [ ] **Fase 6: Observabilidade & DevOps** (Testes automatizados, pipelines CI/CD, Grafana, Prometheus).
+## 🔌 Endpoints Disponíveis
+
+Você pode acessar os endpoints diretamente pela porta de cada serviço ou através do **API Gateway (8080)**.
+
+### 🛡️ Auth Service (8081)
+- `POST /api/v1/auth/register` - Criação de um novo usuário.
+- `POST /api/v1/auth/login` - Autenticação e geração do token JWT.
+
+### 💼 Custody Service (8082)
+- `POST /api/v1/custody/portfolios?userId={id}` - Cria um portfólio para o usuário.
+- `GET /api/v1/custody/portfolios/user/{id}` - Busca o portfólio do usuário.
+- `POST /api/v1/custody/assets?ticker={ticker}&name={name}` - Cadastra um novo ativo.
+- `GET /api/v1/custody/assets` - Lista os ativos disponíveis.
+- `POST /api/v1/custody/orders` - Cria uma nova ordem (dispara evento pro Kafka).
+
+### ⚙️ Event Processor (8083)
+- `GET /api/v1/processed-orders/{orderId}` - Consulta o status e detalhes de uma ordem já processada.
 
 ## 🛠️ Como rodar localmente
 
