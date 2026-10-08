@@ -30,20 +30,21 @@ A plataforma é desenhada como um ecossistema assíncrono e robusto, composto po
 ## 🔌 Endpoints Disponíveis
 
 Você pode acessar os endpoints diretamente pela porta de cada serviço ou através do **API Gateway (8080)**.
+*Obs: Apenas os endpoints de Auth são públicos. Os demais exigem que você envie o cabeçalho `Authorization: Bearer <seu_token>` gerado no login.*
 
 ### 🛡️ Auth Service (8081)
-- `POST /api/v1/auth/register` - Criação de um novo usuário.
-- `POST /api/v1/auth/login` - Autenticação e geração do token JWT.
+- 🔓 `POST /api/v1/auth/register` - Criação de um novo usuário.
+- 🔓 `POST /api/v1/auth/login` - Autenticação e geração do token JWT.
 
 ### 💼 Custody Service (8082)
-- `POST /api/v1/custody/portfolios?userId={id}` - Cria um portfólio para o usuário.
-- `GET /api/v1/custody/portfolios/user/{id}` - Busca o portfólio do usuário.
-- `POST /api/v1/custody/assets?ticker={ticker}&name={name}` - Cadastra um novo ativo.
-- `GET /api/v1/custody/assets` - Lista os ativos disponíveis.
-- `POST /api/v1/custody/orders` - Cria uma nova ordem (dispara evento pro Kafka).
+- 🔒 `POST /api/v1/custody/portfolios?userId={id}` - Cria um portfólio para o usuário.
+- 🔒 `GET /api/v1/custody/portfolios/user/{id}` - Busca o portfólio do usuário.
+- 🔒 `POST /api/v1/custody/assets?ticker={ticker}&name={name}` - Cadastra um novo ativo.
+- 🔒 `GET /api/v1/custody/assets` - Lista os ativos disponíveis.
+- 🔒 `POST /api/v1/custody/orders` - Cria uma nova ordem (dispara evento pro Kafka).
 
 ### ⚙️ Event Processor (8083)
-- `GET /api/v1/processed-orders/{orderId}` - Consulta o status e detalhes de uma ordem já processada.
+- 🔒 `GET /api/v1/processed-orders/{orderId}` - Consulta o status e detalhes de uma ordem já processada.
 
 ## 🛠️ Como rodar localmente
 
