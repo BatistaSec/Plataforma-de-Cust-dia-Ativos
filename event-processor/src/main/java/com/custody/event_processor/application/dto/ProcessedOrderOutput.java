@@ -28,7 +28,7 @@ public class ProcessedOrderOutput {
         this.processedAt = processedAt;
     }
 
-    // Getters
+
     public UUID getId() { return id; }
     public UUID getOrderId() { return orderId; }
     public UUID getPortfolioId() { return portfolioId; }

@@ -20,12 +20,12 @@ public class OrderEventConsumer {
 
     @KafkaListener(topics = "${kafka.topic.custody-orders:custody-orders-topic}", groupId = "${spring.kafka.consumer.group-id:event-processor-group}")
     public void consume(OrderEvent event) {
-        log.info("Received OrderEvent from Kafka: {}", event.getOrderId());
+        log.info("Recebi um OrderEvent do Kafka: {}", event.getOrderId());
         try {
             processOrderEventUseCase.execute(event);
         } catch (Exception e) {
-            log.error("Error processing OrderEvent: {}", event.getOrderId(), e);
-            // TODO: Implement dead letter queue or retry logic
+            log.error("Erro ao processar OrderEvent: {}", event.getOrderId(), e);
+
         }
     }
 }

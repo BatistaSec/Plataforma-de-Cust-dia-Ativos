@@ -26,15 +26,15 @@ public class ProcessOrderEventUseCase {
     }
 
     public void execute(OrderEvent event) {
-        log.info("Processing OrderEvent for Order ID: {}, Status: {}", event.getOrderId(), event.getStatus());
+        log.info("Processando OrderEvent para o ID do Pedido: {}, Status: {}", event.getOrderId(), event.getStatus());
         
-        // Verifica se a ordem já foi processada para garantir a idempotência
+
         if (processedOrderRepository.findByOrderId(event.getOrderId()).isPresent()) {
-            log.info("Order ID: {} already processed. Skipping.", event.getOrderId());
+            log.info("ID do Pedido: {} já processado. Pulando.", event.getOrderId());
             return;
         }
 
-        // TODO: Simulação de lógica de negócios externa (validação em bolsa, etc.)
+
         OrderStatus newStatus = OrderStatus.COMPLETED;
 
         ProcessedOrder processedOrder = new ProcessedOrder(
@@ -50,7 +50,7 @@ public class ProcessOrderEventUseCase {
 
         processedOrderRepository.save(processedOrder);
         
-        // Publica evento avisando que a ordem foi processada
+
         ProcessedOrderEvent processedEvent = new ProcessedOrderEvent(
                 event.getOrderId(),
                 newStatus,
@@ -58,6 +58,6 @@ public class ProcessOrderEventUseCase {
         );
         processedOrderProducer.send(processedEvent);
         
-        log.info("Order ID: {} successfully processed and saved.", event.getOrderId());
+        log.info("ID do Pedido: {} Processado e salvo com sucesso.", event.getOrderId());
     }
 }

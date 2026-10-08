@@ -19,7 +19,7 @@ public class GetProcessedOrderUseCase {
 
     public ProcessedOrderOutput execute(UUID orderId) {
         ProcessedOrder order = repository.findByOrderId(orderId)
-                .orElseThrow(() -> new ResourceNotFoundException("Processed Order not found for Order ID: " + orderId));
+                .orElseThrow(() -> new ResourceNotFoundException("Pedido processado não encontrado para o ID do pedido: " + orderId));
 
         return new ProcessedOrderOutput(
                 order.getId(),
