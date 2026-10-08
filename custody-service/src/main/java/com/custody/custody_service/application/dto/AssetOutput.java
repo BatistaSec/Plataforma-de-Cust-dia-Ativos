@@ -1,8 +1,11 @@
 package com.custody.custody_service.application.dto;
 
+import java.io.Serializable;
 import java.util.UUID;
 
-public class AssetOutput {
+public class AssetOutput implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private final UUID id;
     private final String ticker;
