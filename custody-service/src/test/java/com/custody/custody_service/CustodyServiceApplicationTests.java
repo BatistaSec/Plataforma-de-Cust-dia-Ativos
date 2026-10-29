@@ -75,10 +75,12 @@ class CustodyServiceApplicationTests {
 	@Test
 	void shouldCreatePortfolioSuccessfullyaddUserId() {
 		UUID userId = UUID.randomUUID();
-		
+
+		Map<String, Object> request = Map.of("userId", userId);
+
 		ResponseEntity<PortfolioResponse> response = restTemplate.postForEntity(
-				"/api/v1/custody/portfolios?userId=" + userId, 
-				null, 
+				"/api/v1/custody/portfolios",
+				request,
 				PortfolioResponse.class
 		);
 
@@ -94,8 +96,11 @@ class CustodyServiceApplicationTests {
 		portfolio.setUserId(userId);
 		portfolioRepository.save(portfolio);
 
-		ResponseEntity<PortfolioResponse> response = restTemplate.getForEntity(
-				"/api/v1/custody/portfolios/user/" + userId,
+		Map<String, Object> request = Map.of("userId", userId);
+
+		ResponseEntity<PortfolioResponse> response = restTemplate.postForEntity(
+				"/api/v1/custody/portfolios/user",
+				request,
 				PortfolioResponse.class
 		);
 
@@ -106,9 +111,11 @@ class CustodyServiceApplicationTests {
 
 	@Test
 	void shouldCreateAssetSuccessfully() {
+		Map<String, Object> request = Map.of("ticker", "AAPL", "name", "Apple Inc");
+
 		ResponseEntity<AssetResponse> response = restTemplate.postForEntity(
-				"/api/v1/custody/assets?ticker=AAPL&name=Apple Inc", 
-				null, 
+				"/api/v1/custody/assets",
+				request,
 				AssetResponse.class
 		);
 
