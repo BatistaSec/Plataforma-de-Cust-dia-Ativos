@@ -1,6 +1,6 @@
 # Plataforma de Custódia de Ativos
 
-Plataforma de custódia de ativos construída com **Java 21, Spring Boot, Clean Architecture e Arquitetura Orientada a Eventos (EDA)**.
+Plataforma de custódia de ativos construída com **Java 21, Spring Boot 3.4, Clean Architecture e Arquitetura Orientada a Eventos (EDA)**.
 
 ---
 
@@ -15,58 +15,25 @@ Plataforma de custódia de ativos construída com **Java 21, Spring Boot, Clean 
 | **Arquitetura** | Clean Architecture, DDD, SOLID, Event-Driven (EDA) |
 | **Observabilidade** | Actuator, Prometheus, Grafana, OpenTelemetry, AWS CloudWatch |
 | **Infraestrutura** | Docker, Terraform, AWS ECS Fargate, ECR, ALB, VPC |
-| **CI/CD** | GitHub Actions (Build → Test → Security → Docker → Terraform → Deploy → Smoke Tests) |
+| **CI/CD** | GitHub Actions — pipeline de 9 etapas com rollback automático |
+| **Spec-Driven Dev** | OpenSpec 1.15.0 — proposal + specs + design + tasks por feature |
 
 ---
 
 ## 🏗️ Arquitetura de Microsserviços
 
-```
-                        Internet
-                            │
-                    ┌───────▼────────┐
-                    │      ALB       │
-                    └───────┬────────┘
-                            │
-                    ┌───────▼────────┐
-                    │  api-gateway   │  :8080
-                    │  (JWT filter)  │
-                    └───┬───────┬────┘
-                        │       │
-           ┌────────────▼─┐   ┌─▼──────────────┐
-           │ auth-service │   │ custody-service │
-           │    :8081     │   │     :8082       │
-           └──────────────┘   └────────┬────────┘
-                                       │ publica
-                                       ▼
-                              [custody-orders-topic]
-                               ┌────────┴────────┐
-                               │                 │
-                  ┌────────────▼──┐   ┌──────────▼────┐
-                  │event-processor│   │ audit-service  │
-                  │    :8083      │   │    :8084       │
-                  └───────┬───────┘   └───────────────┘
-                          │ publica
-                          ▼
-                 [processed-orders-topic]
-                          │
-                 ┌────────▼────────┐
-                 │  audit-service  │
-                 │  (ORDER_PROCESSED)
-                 └─────────────────┘
-```
+![Arquitetura da Plataforma de Custódia de Ativos](docs/assets/architecture.svg)
 
 ---
 
 ## 📦 Microsserviços
 
 ### 🚪 API Gateway — porta `8080`
-Ponto único de entrada. Valida JWT em todas as requisições e roteia para os serviços internos via Spring Cloud Gateway.
+Ponto único de entrada. Valida JWT localmente via `JwtUtil` e roteia para os serviços internos via Spring Cloud Gateway. Endpoints `/api/v1/auth/**` são públicos; todos os demais exigem token.
 
 ### 🛡️ Auth Service — porta `8081`
-Autenticação e registro de usuários. Gera tokens JWT com o `userId` como claim. Endpoints públicos.
+Autenticação e registro de usuários. Gera tokens JWT com o `userId` como claim.
 
-**Response do login/register:**
 ```json
 { "token": "eyJhbGci...", "userId": "uuid-do-usuario" }
 ```
@@ -75,17 +42,16 @@ Autenticação e registro de usuários. Gera tokens JWT com o `userId` como clai
 Core do negócio. Gerencia portfólios, ativos e ordens. Usa Redis para cache e publica `OrderEvent` no Kafka ao criar uma ordem.
 
 ### ⚙️ Event Processor — porta `8083`
-Worker assíncrono. Consome `custody-orders-topic`, aplica idempotência, processa a ordem, salva no banco e publica `ProcessedOrderEvent` no Kafka. Possui retry automático com DLT.
+Worker assíncrono. Consome `custody-orders-topic`, aplica idempotência (constraint única por `orderId`), processa a ordem, persiste e publica `ProcessedOrderEvent`. Retry automático com DLT.
 
 ### 🔍 Audit Service — porta `8084`
-Auditoria de negócio. Consome os dois tópicos Kafka e registra **todos os eventos** na tabela `audit_logs`. Permite rastrear o histórico completo de qualquer ordem ou portfólio.
+Auditoria de negócio. Consome os dois tópicos Kafka e registra **todos os eventos** na tabela `audit_logs`. Suporta consulta paginada com filtros por tipo de evento e janela temporal.
 
 ---
 
 ## 🔌 Endpoints
 
 > Todos os endpoints exceto `/api/v1/auth/**` exigem `Authorization: Bearer <token>`.
-> Todos os parâmetros são passados via `@RequestBody` (JSON).
 
 ### 🛡️ Auth Service
 | Método | Endpoint | Body |
@@ -109,10 +75,29 @@ Auditoria de negócio. Consome os dois tópicos Kafka e registra **todos os even
 | `POST` | `/api/v1/processed-orders/reprocess` | `{ "orderId": "uuid" }` |
 
 ### 🔍 Audit Service
-| Método | Endpoint | Body |
+| Método | Endpoint | Query params |
 |---|---|---|
-| `GET` | `/api/v1/audit/order/{orderId}` | — |
-| `GET` | `/api/v1/audit/portfolio/{portfolioId}` | — |
+| `GET` | `/api/v1/audit/order/{orderId}` | `page`, `size`, `eventType`, `from`, `to` |
+| `GET` | `/api/v1/audit/portfolio/{portfolioId}` | `page`, `size`, `eventType`, `from`, `to` |
+
+**Parâmetros de paginação e filtro:**
+
+| Parâmetro | Default | Descrição |
+|---|---|---|
+| `page` | `0` | Número da página (zero-indexed) |
+| `size` | `20` | Itens por página — máx. `100` |
+| `eventType` | — | `ORDER_CREATED`, `ORDER_PROCESSED` ou `ORDER_FAILED` |
+| `from` | — | Início da janela temporal — formato `yyyy-MM-ddTHH:mm:ss` |
+| `to` | — | Fim da janela temporal — formato `yyyy-MM-ddTHH:mm:ss` |
+
+**Exemplo de resposta paginada:**
+```json
+{
+  "content": [{ "id": "uuid", "eventType": "ORDER_CREATED", "occurredAt": "2026-10-15T14:30:00", "..." }],
+  "page": 0, "size": 20, "totalElements": 150, "totalPages": 8,
+  "first": true, "last": false
+}
+```
 
 ---
 
@@ -122,48 +107,38 @@ Auditoria de negócio. Consome os dois tópicos Kafka e registra **todos os even
 ```bash
 docker-compose up -d
 ```
-Sobe PostgreSQL (porta `15432`), Redis (`6379`) e Kafka (`9092`).
+Sobe PostgreSQL (`15432`), Redis (`6379`) e Kafka (`9092`).
 
 ### 2. Subir observabilidade (opcional)
 ```bash
 docker-compose -f docker-compose.observability.yml up -d
 ```
-Sobe Prometheus (`9090`), Grafana (`3000`, admin/admin) e OpenTelemetry Collector (`4318`).
+Sobe Prometheus (`9090`), Grafana (`3000` — admin/admin) e OpenTelemetry Collector (`4318`).
 
 ### 3. Iniciar os serviços
-Cada serviço pode ser iniciado pela IDE ou via terminal dentro do diretório:
 ```bash
-cd auth-service && ./mvnw spring-boot:run
-cd custody-service && ./mvnw spring-boot:run
-cd event-processor && ./mvnw spring-boot:run
-cd audit-service && ./mvnw spring-boot:run
-cd api-gateway && ./mvnw spring-boot:run
+cd auth-service      && ./mvnw spring-boot:run
+cd custody-service   && ./mvnw spring-boot:run
+cd event-processor   && ./mvnw spring-boot:run
+cd audit-service     && ./mvnw spring-boot:run
+cd api-gateway       && ./mvnw spring-boot:run
 ```
 
 ### 4. Testar com Insomnia
-Importe o arquivo `insomnia-collection.json` na raiz do projeto. A coleção já vem com todas as rotas e variáveis de ambiente configuradas.
+Importe `insomnia-collection.json`. Fluxo sugerido:
 
-**Fluxo sugerido:**
-1. Register → pega `token` e `userId`
+1. **Register** → captura `token` e `userId`
 2. Preenche as variáveis no environment do Insomnia
-3. Criar ativo → pega `assetId`
-4. Criar portfólio → pega `portfolioId`
-5. Criar ordem → pega `orderId`
-6. Consultar ordem processada e auditoria
+3. **Criar ativo** → captura `assetId`
+4. **Criar portfólio** → captura `portfolioId`
+5. **Criar ordem** → captura `orderId`
+6. **Consultar auditoria** → `GET /api/v1/audit/order/{orderId}`
 
 ---
 
 ## ☁️ Deploy na AWS (Terraform)
 
-A infraestrutura completa está em `terraform/` e provisiona:
-
-- **VPC** com subnets públicas e privadas, NAT Gateway
-- **RDS** PostgreSQL 16 criptografado
-- **MSK** Kafka com 2 brokers
-- **ElastiCache** Redis
-- **ECR** com 1 repositório por serviço
-- **ECS Fargate** cluster com os 5 serviços
-- **ALB** com target group por serviço
+A infraestrutura completa está em `terraform/` e provisiona VPC, RDS PostgreSQL 16, MSK Kafka, ElastiCache Redis, ECR (1 repositório por serviço), ECS Fargate (5 serviços) e ALB.
 
 ```bash
 cd terraform
@@ -177,18 +152,50 @@ make apply
 
 ## 🔄 CI/CD (GitHub Actions)
 
-Cada serviço tem seu próprio workflow em `.github/workflows/`. O pipeline completo:
+Pipeline de **9 etapas** por microsserviço, ativado por push em `main` ou PR:
 
-  
+| Etapa | Push `main` | PR |
+|---|---|---|
+| 1 — Validate Branch (título do PR) | ✅ | ✅ |
+| 2 — Build + Testes | ✅ | ✅ |
+| 3 — Security: Gitleaks + Trivy (filesystem) | ✅ | ✅ |
+| 4 — Docker Build + Trivy (imagem) | ✅ | ❌ |
+| 5 — Push ECR (SHA + latest) | ✅ | ❌ |
+| 6 — Terraform Plan & Apply | ✅ | ❌ |
+| 7 — Deploy ECS Fargate | ✅ | ❌ |
+| 8 — Smoke Tests + health check | ✅ | ❌ |
+| 9 — Rollback automático (se smoke falhar) | ✅ | ❌ |
 
-Workflows disponíveis:
-- `ci-cd-api-gateway.yml`
-- `ci-cd-auth-service.yml`
-- `ci-cd-custody-service.yml`
-- `ci-cd-event-processor.yml`
-- `ci-cd-audit-service.yml`
+Workflows: `.github/workflows/ci-cd-<serviço>.yml`  
+Secrets necessários: `.github/SECRETS.md`
 
-Secrets necessários documentados em `.github/SECRETS.md`.
+---
+
+## 📐 Spec-Driven Development (OpenSpec)
+
+O projeto usa **OpenSpec 1.15.0** para documentar e implementar funcionalidades de forma estruturada. Toda feature passa por: proposta → specs (critérios de aceitação em Gherkin) → design técnico → lista de tarefas — antes de qualquer código ser escrito.
+
+```
+openspec/
+├── config.yaml                    ← regras do projeto para a IA
+├── specs/                         ← specs consolidadas por capacidade
+└── changes/                       ← features em andamento ou arquivadas
+    └── consulta-paginada-eventos-auditoria/   ← em andamento
+        ├── proposal.md
+        ├── specs/audit/consulta-paginada/spec.md
+        ├── design.md
+        └── tasks.md
+```
+
+**Comandos disponíveis no Kiro:**
+
+| Comando | O que faz |
+|---|---|
+| `/opsx-explore` | Parceiro de pensamento antes de propor |
+| `/opsx-propose "descrição"` | Cria proposal + specs + design + tasks |
+| `/opsx-apply` | Implementa as tarefas do tasks.md |
+| `/opsx-update` | Revisa os artefatos da change ativa |
+| `/opsx-archive` | Arquiva a change após implementação |
 
 ---
 
@@ -196,10 +203,10 @@ Secrets necessários documentados em `.github/SECRETS.md`.
 
 | Ferramenta | URL local | Finalidade |
 |---|---|---|
-| **Actuator** | `/actuator/health` em cada serviço | Health check e métricas |
-| **Prometheus** | `http://localhost:9090` | Coleta métricas de todos os serviços |
-| **Grafana** | `http://localhost:3000` (admin/admin) | Dashboards visuais |
-| **OTel Collector** | `http://localhost:4318` | Recebe traces distribuídos |
+| **Actuator** | `/actuator/health` (cada serviço) | Health check |
+| **Prometheus** | `http://localhost:9090` | Coleta de métricas |
+| **Grafana** | `http://localhost:3000` (admin/admin) | Dashboards |
+| **OTel Collector** | `http://localhost:4318` | Traces distribuídos |
 | **CloudWatch** | AWS Console | Logs e métricas em produção |
 
 No Grafana, importe o dashboard **Spring Boot Statistics** (ID `6756`).
@@ -210,31 +217,39 @@ No Grafana, importe o dashboard **Spring Boot Statistics** (ID `6756`).
 
 ```
 projeto-portifolio/
-├── api-gateway/               ← Spring Cloud Gateway + filtro JWT
-├── auth-service/              ← Autenticação + JWT
-├── custody-service/           ← Core de negócio
-├── event-processor/           ← Worker Kafka assíncrono
-├── audit-service/             ← Auditoria de negócio
-├── terraform/                 ← Infraestrutura AWS como código
-│   ├── modules/               ← VPC, RDS, MSK, ECS, ECR, ALB...
-│   └── infrastructure.tf      ← Orquestração de todos os módulos
-├── observability/             ← Configs Prometheus, Grafana, OTel
-├── .github/workflows/         ← Pipelines CI/CD por serviço
-├── docker-compose.yml         ← Infraestrutura local (Postgres, Redis, Kafka)
-├── docker-compose.observability.yml ← Stack de observabilidade local
-└── insomnia-collection.json   ← Coleção de endpoints para testes
+├── api-gateway/                    ← Spring Cloud Gateway + filtro JWT
+├── auth-service/                   ← Autenticação + JWT
+├── custody-service/                ← Core de negócio
+├── event-processor/                ← Worker Kafka assíncrono
+├── audit-service/                  ← Auditoria de negócio
+├── terraform/                      ← Infraestrutura AWS como código
+│   ├── modules/                    ← VPC, RDS, MSK, ECS, ECR, ALB...
+│   └── infrastructure.tf
+├── observability/                  ← Configs Prometheus, Grafana, OTel
+├── openspec/                       ← Spec-Driven Development
+│   ├── config.yaml
+│   ├── specs/
+│   └── changes/
+├── docs/                           ← OpenSpec e SDD por feature
+├── .github/
+│   ├── workflows/                  ← Pipelines CI/CD (um por serviço)
+│   └── SECRETS.md                  ← Documentação de secrets necessários
+├── docker-compose.yml              ← Infra local (PostgreSQL, Redis, Kafka)
+├── docker-compose.observability.yml
+└── insomnia-collection.json        ← Coleção de endpoints para testes
 ```
 
 ---
 
 ## 🎯 Fases de Desenvolvimento
 
-- [x] Fase 1 — Infraestrutura local (Docker Compose: PostgreSQL, Redis, Kafka)
+- [x] Fase 1 — Infraestrutura local (Docker Compose)
 - [x] Fase 2 — Auth Service (JWT, Spring Security, Clean Architecture)
 - [x] Fase 3 — API Gateway (roteamento, filtro JWT)
 - [x] Fase 4 — Custody Service (DDD, Redis cache, Kafka producer)
 - [x] Fase 5 — Event Processor (Kafka consumer, idempotência, retry + DLT)
-- [x] Fase 6 — Audit Service (auditoria de negócio via Kafka)
+- [x] Fase 6 — Audit Service (auditoria via Kafka, consulta paginada)
 - [x] Fase 7 — Observabilidade (Actuator, Prometheus, Grafana, OTel, CloudWatch)
-- [x] Fase 8 — CI/CD (GitHub Actions, Docker, ECR, ECS, Terraform, Smoke Tests)
+- [x] Fase 8 — CI/CD (GitHub Actions — 9 etapas com rollback automático)
 - [x] Fase 9 — Infraestrutura AWS (Terraform: VPC, RDS, MSK, ECS Fargate, ALB)
+- [x] Fase 10 — Spec-Driven Development (OpenSpec + Kiro)
