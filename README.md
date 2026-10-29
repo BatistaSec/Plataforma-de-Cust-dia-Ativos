@@ -22,7 +22,7 @@ Plataforma de custódia de ativos construída com **Java 21, Spring Boot 3.4, Cl
 
 ## 🏗️ Arquitetura de Microsserviços
 
-![Arquitetura da Plataforma de Custódia de Ativos](docs/assets/architecture.svg)
+![Arquitetura da Plataforma de Custódia de Ativos](docs/projeto.png)
 
 ---
 
