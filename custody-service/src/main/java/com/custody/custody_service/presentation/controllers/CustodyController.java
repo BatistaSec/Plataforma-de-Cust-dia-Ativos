@@ -2,14 +2,16 @@ package com.custody.custody_service.presentation.controllers;
 
 import com.custody.custody_service.application.dto.*;
 import com.custody.custody_service.application.usecases.*;
+import com.custody.custody_service.presentation.request.CreateAssetRequest;
+import com.custody.custody_service.presentation.request.CreatePortfolioRequest;
 import com.custody.custody_service.presentation.request.CustodyOrderRequest;
+import com.custody.custody_service.presentation.request.GetPortfolioRequest;
 import com.custody.custody_service.presentation.response.*;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @RestController
@@ -35,21 +37,21 @@ public class CustodyController {
     }
 
     @PostMapping("/portfolios")
-    public ResponseEntity<PortfolioResponse> createPortfolio(@RequestParam UUID userId) {
-        var input = new CreatePortfolioInput(userId);
+    public ResponseEntity<PortfolioResponse> createPortfolio(@Valid @RequestBody CreatePortfolioRequest request) {
+        var input = new CreatePortfolioInput(request.getUserId());
         var output = createPortfolioUseCase.execute(input);
         return ResponseEntity.ok(toPortfolioResponse(output));
     }
 
-    @GetMapping("/portfolios/user/{userId}")
-    public ResponseEntity<PortfolioResponse> getPortfolio(@PathVariable UUID userId) {
-        var output = getPortfolioUseCase.execute(userId);
+    @PostMapping("/portfolios/user")
+    public ResponseEntity<PortfolioResponse> getPortfolio(@Valid @RequestBody GetPortfolioRequest request) {
+        var output = getPortfolioUseCase.execute(request.getUserId());
         return ResponseEntity.ok(toPortfolioResponse(output));
     }
 
     @PostMapping("/assets")
-    public ResponseEntity<AssetResponse> createAsset(@RequestParam String ticker, @RequestParam String name) {
-        var output = createAssetUseCase.execute(ticker, name);
+    public ResponseEntity<AssetResponse> createAsset(@Valid @RequestBody CreateAssetRequest request) {
+        var output = createAssetUseCase.execute(request.getTicker(), request.getName());
         return ResponseEntity.ok(new AssetResponse(output.getId(), output.getTicker(), output.getName()));
     }
 

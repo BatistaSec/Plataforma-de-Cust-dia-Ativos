@@ -9,5 +9,6 @@ import java.util.UUID;
 
 @Repository
 public interface SpringDataProcessedOrderRepository extends JpaRepository<ProcessedOrderEntity, UUID> {
+
     Optional<ProcessedOrderEntity> findByOrderId(UUID orderId);
 }

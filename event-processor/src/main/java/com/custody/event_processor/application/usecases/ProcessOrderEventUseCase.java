@@ -27,15 +27,24 @@ public class ProcessOrderEventUseCase {
 
     public void execute(OrderEvent event) {
         log.info("Processando OrderEvent para o ID do Pedido: {}, Status: {}", event.getOrderId(), event.getStatus());
-        
 
         if (processedOrderRepository.findByOrderId(event.getOrderId()).isPresent()) {
             log.info("ID do Pedido: {} já processado. Pulando.", event.getOrderId());
             return;
         }
 
-
-        OrderStatus newStatus = OrderStatus.COMPLETED;
+        OrderStatus newStatus;
+        try {
+            // lógica de negócio: determina o status final com base no status recebido
+            newStatus = switch (event.getStatus()) {
+                case PENDING, PROCESSING -> OrderStatus.COMPLETED;
+                case FAILED -> OrderStatus.FAILED;
+                default -> OrderStatus.COMPLETED;
+            };
+        } catch (Exception e) {
+            log.error("Erro ao determinar status para OrderId: {}", event.getOrderId(), e);
+            newStatus = OrderStatus.FAILED;
+        }
 
         ProcessedOrder processedOrder = new ProcessedOrder(
                 null,
@@ -49,7 +58,6 @@ public class ProcessOrderEventUseCase {
         );
 
         processedOrderRepository.save(processedOrder);
-        
 
         ProcessedOrderEvent processedEvent = new ProcessedOrderEvent(
                 event.getOrderId(),
@@ -57,7 +65,7 @@ public class ProcessOrderEventUseCase {
                 LocalDateTime.now()
         );
         processedOrderProducer.send(processedEvent);
-        
-        log.info("ID do Pedido: {} Processado e salvo com sucesso.", event.getOrderId());
+
+        log.info("ID do Pedido: {} Processado com status {}.", event.getOrderId(), newStatus);
     }
 }

@@ -28,13 +28,13 @@ public class AuthController {
     public ResponseEntity<AuthResponse> register(@Valid @RequestBody AuthRequest request) {
         var input = new RegisterInput(request.getEmail(), request.getPassword());
         AuthOutput output = registerUserUseCase.execute(input);
-        return ResponseEntity.ok(new AuthResponse(output.getToken()));
+        return ResponseEntity.ok(new AuthResponse(output.getToken(), output.getUserId()));
     }
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> authenticate(@Valid @RequestBody AuthRequest request) {
         var input = new AuthInput(request.getEmail(), request.getPassword());
         AuthOutput output = authenticateUserUseCase.execute(input);
-        return ResponseEntity.ok(new AuthResponse(output.getToken()));
+        return ResponseEntity.ok(new AuthResponse(output.getToken(), output.getUserId()));
     }
 }

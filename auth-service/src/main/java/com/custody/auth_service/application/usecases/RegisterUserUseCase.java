@@ -37,6 +37,6 @@ public class RegisterUserUseCase {
         var claims = Map.<String, Object>of("userId", savedUser.getId().toString());
         var jwtToken = jwtService.generateToken(claims, email.getValue());
 
-        return new AuthOutput(jwtToken);
+        return new AuthOutput(jwtToken, savedUser.getId().toString());
     }
 }

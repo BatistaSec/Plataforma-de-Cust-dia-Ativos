@@ -1,0 +1,55 @@
+server:
+  port: 8084
+
+spring:
+  application:
+    name: audit-service
+  datasource:
+    url: jdbc:postgresql://localhost:15432/custody_db
+    username: custody_user
+    password: custody_password
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: audit-service-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+
+kafka:
+  topics:
+    custody-orders: custody-orders-topic
+    processed-orders: processed-orders-topic
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics, prometheus
+  endpoint:
+    health:
+      show-details: always
+    prometheus:
+      enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+
+otel:
+  exporter:
+    otlp:
+      endpoint: http://localhost:4318
+  resource:
+    attributes:
+      service.name: ${spring.application.name}
+      service.version: 1.0.0

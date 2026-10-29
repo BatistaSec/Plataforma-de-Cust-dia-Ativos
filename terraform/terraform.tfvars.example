@@ -1,0 +1,14 @@
+# Copie este arquivo para terraform.tfvars e preencha os valores
+# NUNCA commite terraform.tfvars no git
+
+aws_region  = "us-east-1"
+environment = "dev"
+project     = "custody-portfolio"
+vpc_cidr    = "10.0.0.0/16"
+
+db_username = "custody_user"
+db_name     = "custody_db"
+
+# Preencher com valores reais — não commitar
+db_password = "CHANGE_ME"
+jwt_secret  = "CHANGE_ME_aVeryLongSecretKeyForJwt"

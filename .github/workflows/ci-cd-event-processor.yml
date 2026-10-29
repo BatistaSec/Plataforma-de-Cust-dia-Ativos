@@ -1,0 +1,345 @@
+name: CI/CD — Event Processor
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'event-processor/**'
+      - 'pom.xml'
+      - '.github/workflows/ci-cd-event-processor.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'event-processor/**'
+      - 'pom.xml'
+      - '.github/workflows/ci-cd-event-processor.yml'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+env:
+  SERVICE:           event-processor
+  ECR_REPOSITORY:    custody-portfolio/event-processor
+  ECS_SERVICE:       event-processor
+  ECS_CLUSTER:       custody-portfolio-cluster
+  CONTAINER_NAME:    event-processor
+  AWS_REGION:        us-east-1
+  JAVA_VERSION:      '21'
+  TERRAFORM_VERSION: '1.7.0'
+
+jobs:
+
+  validate-branch:
+    name: "1 · Validate Branch"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate PR title format
+        if: github.event_name == 'pull_request'
+        run: |
+          TITLE="${{ github.event.pull_request.title }}"
+          if ! echo "$TITLE" | grep -qE '^(feat|fix|chore|ci|docs|refactor|test|perf|revert)(\(.+\))?!?:.+'; then
+            echo "❌ PR title inválido: '$TITLE'"; exit 1
+          fi
+          echo "✅ PR title OK"
+
+  build:
+    name: "2 · Build"
+    runs-on: ubuntu-latest
+    needs: validate-branch
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Java ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: temurin
+          cache: maven
+
+      - name: Build (skip tests)
+        run: mvn -pl event-processor -am clean package -DskipTests -B -q
+
+      - name: Upload jar artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.SERVICE }}-jar-${{ github.sha }}
+          path: event-processor/target/*.jar
+          retention-days: 1
+          if-no-files-found: error
+
+  test:
+    name: "2 · Tests"
+    runs-on: ubuntu-latest
+    needs: build
+    timeout-minutes: 20   # Testcontainers pode demorar mais
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Java ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: temurin
+          cache: maven
+
+      - name: Run tests (inclui Testcontainers)
+        run: mvn -pl event-processor -am verify -B
+
+      - name: Publish test report
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: Event Processor — Test Report
+          path: event-processor/target/surefire-reports/*.xml
+          reporter: java-junit
+          fail-on-error: false
+
+  security:
+    name: "3 · Security & Quality"
+    runs-on: ubuntu-latest
+    needs: build
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Scan for secrets (Gitleaks)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Dependency vulnerability scan (Trivy)
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          scan-type: fs
+          scan-ref: event-processor
+          format: table
+          exit-code: '1'
+          ignore-unfixed: true
+          severity: CRITICAL,HIGH
+
+  docker:
+    name: "4 · Docker Build & Scan + 5 · Push ECR"
+    runs-on: ubuntu-latest
+    needs: [test, security]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    timeout-minutes: 20
+    outputs:
+      image: ${{ steps.push.outputs.image }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download jar
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.SERVICE }}-jar-${{ github.sha }}
+          path: event-processor/target
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region:            ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build Docker image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG:    ${{ github.sha }}
+        run: |
+          docker build \
+            --label "git.sha=${{ github.sha }}" \
+            --label "git.ref=${{ github.ref }}" \
+            --label "build.run=${{ github.run_id }}" \
+            -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
+            event-processor/
+
+      - name: Scan Docker image (Trivy)
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          image-ref: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+          format: table
+          exit-code: '1'
+          ignore-unfixed: true
+          severity: CRITICAL
+
+      - name: Push image to ECR
+        id: push
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG:    ${{ github.sha }}
+        run: |
+          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
+                     $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+  terraform:
+    name: "6 · Terraform Plan & Apply"
+    runs-on: ubuntu-latest
+    needs: docker
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: terraform/event-processor
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region:            ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform ${{ env.TERRAFORM_VERSION }}
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+
+      - name: Terraform Init
+        run: terraform init -input=false
+
+      - name: Terraform Validate
+        run: terraform validate
+
+      - name: Terraform Plan
+        run: terraform plan -var="image_tag=${{ github.sha }}" -out=tfplan -input=false
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve -input=false tfplan
+
+  deploy:
+    name: "7 · Deploy ECS Fargate"
+    runs-on: ubuntu-latest
+    needs: terraform
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    timeout-minutes: 15
+    outputs:
+      previous-task-def: ${{ steps.snapshot.outputs.previous-task-def }}
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region:            ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Snapshot current task definition revision
+        id: snapshot
+        run: |
+          PREV=$(aws ecs describe-services \
+            --cluster ${{ env.ECS_CLUSTER }} \
+            --services ${{ env.ECS_SERVICE }} \
+            --query 'services[0].taskDefinition' \
+            --output text)
+          echo "previous-task-def=$PREV" >> $GITHUB_OUTPUT
+          echo "📸 Task definition atual: $PREV"
+
+      - name: Download current task definition JSON
+        run: |
+          aws ecs describe-task-definition \
+            --task-definition ${{ env.ECS_SERVICE }} \
+            --query taskDefinition \
+            > task-definition.json
+
+      - name: Update task definition with new image
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition:  task-definition.json
+          container-name:   ${{ env.CONTAINER_NAME }}
+          image:            ${{ needs.docker.outputs.image }}
+
+      - name: Deploy to ECS
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition:           ${{ steps.task-def.outputs.task-definition }}
+          service:                   ${{ env.ECS_SERVICE }}
+          cluster:                   ${{ env.ECS_CLUSTER }}
+          wait-for-service-stability: true
+
+  smoke:
+    name: "8 · Smoke Tests & Observability"
+    runs-on: ubuntu-latest
+    needs: deploy
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    timeout-minutes: 5
+    steps:
+      - name: Wait for ECS stabilization
+        run: sleep 20
+
+      - name: Health check
+        run: |
+          for i in 1 2 3; do
+            STATUS=$(curl -sf -o /dev/null -w "%{http_code}" \
+              --max-time 10 \
+              "${{ secrets.EVENT_PROCESSOR_URL }}/actuator/health" || echo "000")
+            echo "Tentativa $i: $STATUS"
+            [ "$STATUS" = "200" ] && break
+            [ "$i" = "3" ] && { echo "❌ Health check falhou"; exit 1; }
+            sleep 10
+          done
+          echo "✅ Health check OK"
+
+      - name: Smoke test — GET /api/v1/processed-orders/{orderId} (UUID inexistente → 404 esperado)
+        run: |
+          STATUS=$(curl -sf -o /dev/null -w "%{http_code}" \
+            --max-time 10 \
+            -H "Authorization: Bearer ${{ secrets.SMOKE_TEST_TOKEN }}" \
+            "${{ secrets.EVENT_PROCESSOR_URL }}/api/v1/processed-orders/00000000-0000-0000-0000-000000000000" \
+            || echo "000")
+          # 404 = endpoint respondeu, ordem não existe (comportamento correto)
+          if [[ "$STATUS" != "404" && "$STATUS" != "200" ]]; then
+            echo "❌ Processed orders endpoint retornou $STATUS (esperado 200 ou 404)"
+            exit 1
+          fi
+          echo "✅ Event Processor endpoint OK: $STATUS"
+
+  rollback:
+    name: "9 · Rollback on Failure"
+    runs-on: ubuntu-latest
+    needs: [deploy, smoke]
+    if: |
+      always() &&
+      needs.smoke.result == 'failure' &&
+      needs.deploy.result == 'success'
+    timeout-minutes: 10
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region:            ${{ env.AWS_REGION }}
+
+      - name: Rollback to previous task definition
+        run: |
+          PREV="${{ needs.deploy.outputs.previous-task-def }}"
+          echo "⏪ Revertendo para: $PREV"
+          aws ecs update-service \
+            --cluster   ${{ env.ECS_CLUSTER }} \
+            --service   ${{ env.ECS_SERVICE }} \
+            --task-definition "$PREV" \
+            --force-new-deployment > /dev/null
+          aws ecs wait services-stable \
+            --cluster  ${{ env.ECS_CLUSTER }} \
+            --services ${{ env.ECS_SERVICE }}
+          echo "✅ Rollback concluído"
+
+      - name: Annotate run with rollback notice
+        run: |
+          echo "::error title=Rollback executado::Smoke tests falharam. Serviço revertido para ${{ needs.deploy.outputs.previous-task-def }}"
+          exit 1

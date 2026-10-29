@@ -1,0 +1,101 @@
+schema: spec-driven
+
+# Project context — constraints that orient the agent before every change.
+# Discoverable codebase facts (package names, class names, etc.) are NOT
+# repeated here; the agent must read the relevant source files directly.
+context: |
+  ## Platform
+  Plataforma de custódia de ativos financeiros com 5 microsserviços em Java 21 / Spring Boot 3.4:
+    - api-gateway    (:8080) — Spring Cloud Gateway + JWT filter (AuthenticationFilter + JwtUtil)
+    - auth-service   (:8081) — registro e autenticação, emite JWT; sem Kafka
+    - custody-service(:8082) — core de negócio; publica OrderEvent em custody-orders-topic
+    - event-processor(:8083) — worker Kafka; idempotência via processedOrderRepository; publica ProcessedOrderEvent em processed-orders-topic
+    - audit-service  (:8084) — consome ambos os tópicos; persiste AuditLog em audit_logs (PostgreSQL)
+
+  ## Arquitetura obrigatória
+  Clean Architecture em todos os serviços: domain → application → infrastructure → presentation.
+  O domínio não deve importar nada de Spring, JPA, Kafka ou application.dto.
+  Repositórios são interfaces no domínio; adaptadores ficam em infrastructure.persistence.adapters.
+  Cada use case fica em um arquivo separado em application/usecases/.
+
+  ## Regras de implementação
+  - Inspecionar o código-fonte antes de nomear classes, campos, métodos ou endpoints.
+  - Preservar todos os padrões arquiteturais e convenções de nomenclatura existentes.
+  - Não alterar regras de negócio silenciosamente; registrar qualquer divergência.
+  - Não introduzir novas dependências sem justificativa técnica explícita.
+  - Não fazer overengineering; implementar apenas o que a change especifica.
+  - Criar testes para todo código novo; não depender exclusivamente de mocks para validar queries JPA.
+  - Não modificar schema do banco nem executar migrations — o projeto usa ddl-auto: update.
+  - Não alterar infraestrutura AWS, Terraform, pipelines CI/CD ou docker-compose sem autorização.
+  - Não expor segredos, tokens ou senhas em logs ou respostas HTTP.
+  - Não fazer deploy nem publicar imagens Docker.
+  - Aguardar aprovação explícita antes de iniciar a implementação de qualquer change.
+
+  ## Stack de testes
+  JUnit 5 + Mockito para unitários. Testcontainers (postgres:16-alpine + confluentinc/cp-kafka:7.6.1)
+  para integração — mesmas versões usadas no event-processor (1.19.7).
+  Não usar H2 para validar queries JPQL com enums ou comportamento temporal específico de PostgreSQL.
+
+  ## Fronteiras entre microsserviços
+  Microsserviços não chamam uns aos outros via HTTP (exceto gateway → serviços downstream).
+  Comunicação assíncrona: custody-service → [custody-orders-topic] → event-processor + audit-service.
+  event-processor → [processed-orders-topic] → audit-service.
+  Não criar dependências de Maven entre os módulos dos microsserviços.
+
+  ## Kafka — comportamento crítico
+  @RetryableTopic com backoff exponencial (1s ×2, 3 tentativas) em todos os consumers.
+  DLT nomeado com sufixo -dlt (event-processor) ou -audit-dlt (audit-service).
+  Idempotência obrigatória no event-processor (unique constraint em orderId na tabela processed_orders).
+
+  ## Segurança
+  JWT validado pelo api-gateway (JwtUtil, chave HMAC compartilhada Base64).
+  O audit-service não valida JWT diretamente — confia no gateway.
+  Handlers de erro nunca devem expor ex.getMessage() nem stack traces no response body em produção.
+  Parâmetros de ordenação dinâmica não são aceitos — ORDER BY é fixo no JPQL.
+
+  ## Documentos existentes
+  OpenSpec e SDD anteriores estão em docs/openspec-audit-paginated-history.md e
+  docs/sdd-audit-paginated-history.md. A revisão completa do design técnico está em
+  docs/sdd-audit-paginated-history.md v2.0.0, que deve ser usada como referência primária.
+  O semantic review está em semantic-review/2026-10-29-141058-audit-001-paged-history.md.
+
+# Per-artifact rules
+rules:
+  proposal:
+    - Escrever em português brasileiro.
+    - Indicar explicitamente quais microsserviços e camadas são afetados.
+    - Listar itens fora do escopo.
+    - Registrar ambiguidades e decisões pendentes em vez de inventar respostas.
+  specs:
+    - Escrever em português brasileiro.
+    - Usar Gherkin com Feature, Scenario, Given, When, Then e And.
+    - Cada cenário deve verificar um comportamento observável com condições iniciais claras.
+    - Não inventar regras de negócio; registrar ambiguidades para decisão.
+    - Incluir cenários de erro, limites, valores nulos e compatibilidade.
+  design:
+    - Escrever em português brasileiro.
+    - Incluir diagrama de sequência Mermaid cobrindo fluxos feliz, erro e vazio.
+    - Documentar contrato HTTP completo com tipos, defaults, validações e exemplos JSON.
+    - Documentar estratégia de consulta JPQL, contagem e paginação.
+    - Justificar índices com base nas queries reais; não criar índices especulativos.
+    - Documentar breaking changes explicitamente.
+    - Incluir matriz de rastreabilidade requisito → cenário → teste.
+  tasks:
+    - Escrever em português brasileiro.
+    - Cada tarefa deve ser atômica e verificável.
+    - Incluir tarefas de teste separadas das tarefas de implementação.
+    - Não incluir tarefas de deploy, migration ou infraestrutura AWS.
+    - Referenciar os arquivos a criar ou modificar por caminho completo relativo ao microsserviço.
+
+# Per-operation guidance
+operations:
+  apply:
+    guidance:
+      - Antes de qualquer modificação, ler os arquivos afetados para confirmar o estado atual.
+      - Compilar o serviço após cada conjunto de alterações relacionadas (mvnw compile).
+      - Não declarar uma tarefa concluída sem compilação bem-sucedida.
+      - Preservar use cases e métodos de repositório existentes; não remover sem autorização.
+  archive:
+    guidance:
+      - Confirmar que mvnw compile passa antes de arquivar.
+      - Registrar breaking changes introduzidas na seção de decisões arquiteturais.

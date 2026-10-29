@@ -9,7 +9,7 @@ public class ProcessedOrderEvent {
     private UUID orderId;
     private OrderStatus finalStatus;
     private LocalDateTime processedAt;
-
+  
     public ProcessedOrderEvent() {}
 
     public ProcessedOrderEvent(UUID orderId, OrderStatus finalStatus, LocalDateTime processedAt) {

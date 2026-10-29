@@ -37,6 +37,6 @@ public class AuthenticateUserUseCase {
         var claims = Map.<String, Object>of("userId", user.getId().toString());
         var jwtToken = jwtService.generateToken(claims, user.getEmail().getValue());
 
-        return new AuthOutput(jwtToken);
+        return new AuthOutput(jwtToken, user.getId().toString());
     }
 }

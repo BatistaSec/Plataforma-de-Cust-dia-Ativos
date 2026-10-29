@@ -17,6 +17,34 @@ spring:
       hibernate:
         format_sql: true
 
+# JWT Configuration
 jwt:
-  secret: aVeryLongSecretKeyForJwtSignatureThatIsAtLeast256BitsLong123!@#
+  secret: c3VwZXJzZWNyZXRrZXlmb3Jqd3R0aGF0aXNsb25nZW5vdWdoMTIzNDU2Nzg=
   expiration: 86400000
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics, prometheus
+  endpoint:
+    health:
+      show-details: always
+    prometheus:
+      enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+
+# OpenTelemetry
+otel:
+  exporter:
+    otlp:
+      endpoint: http://localhost:4318
+  resource:
+    attributes:
+      service.name: ${spring.application.name}
+      service.version: 1.0.0

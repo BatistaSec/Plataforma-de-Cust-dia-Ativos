@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+
+  # ─── Prometheus ────────────────────────────────────────────────────────────
+  prometheus:
+    image: prom/prometheus:v2.51.0
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.retention.time=7d'
+    networks:
+      - observability
+    restart: unless-stopped
+
+  # ─── Grafana ───────────────────────────────────────────────────────────────
+  grafana:
+    image: grafana/grafana:10.4.1
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning
+    depends_on:
+      - prometheus
+    networks:
+      - observability
+    restart: unless-stopped
+
+  # ─── OpenTelemetry Collector ───────────────────────────────────────────────
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.97.0
+    container_name: otel-collector
+    ports:
+      - "4317:4317"   # OTLP gRPC
+      - "4318:4318"   # OTLP HTTP  ← os serviços apontam para cá
+      - "8889:8889"   # Prometheus metrics do collector
+    volumes:
+      - ./observability/otel-collector/otel-collector-config.yml:/etc/otel-collector-config.yml
+    command: ["--config=/etc/otel-collector-config.yml"]
+    networks:
+      - observability
+    restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+networks:
+  observability:
+    driver: bridge
+
+volumes:
+  grafana_data:

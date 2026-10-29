@@ -1,0 +1,244 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2026-10-29",
+  "__export_source": "insomnia",
+  "resources": [
+    {
+      "_id": "wrk_custody",
+      "_type": "workspace",
+      "name": "Custody Portfolio API",
+      "description": "Coleção de endpoints do projeto portifolio"
+    },
+    {
+      "_id": "env_base",
+      "_type": "environment",
+      "parentId": "wrk_custody",
+      "name": "Base Environment",
+      "data": {
+        "base_url": "http://localhost:8082",
+        "auth_url": "http://localhost:8081",
+        "user_id": "",
+        "portfolio_id": "",
+        "asset_id": "",
+        "order_id": "",
+        "token": ""
+      }
+    },
+
+    {
+      "_id": "fld_auth",
+      "_type": "request_group",
+      "parentId": "wrk_custody",
+      "name": "🔐 Auth Service"
+    },
+    {
+      "_id": "req_register",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "name": "Registrar usuário",
+      "method": "POST",
+      "url": "{{ _.auth_url }}/api/v1/auth/register",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"joao@email.com\",\n  \"password\": \"senha123\"\n}"
+      }
+    },
+    {
+      "_id": "req_login",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "name": "Login",
+      "method": "POST",
+      "url": "{{ _.auth_url }}/api/v1/auth/login",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"joao@email.com\",\n  \"password\": \"senha123\"\n}"
+      }
+    },
+
+    {
+      "_id": "fld_portfolios",
+      "_type": "request_group",
+      "parentId": "wrk_custody",
+      "name": "📁 Portfólios"
+    },
+    {
+      "_id": "req_create_portfolio",
+      "_type": "request",
+      "parentId": "fld_portfolios",
+      "name": "Criar portfólio",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/v1/custody/portfolios",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {{ _.token }}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"userId\": \"{{ _.user_id }}\"\n}"
+      }
+    },
+    {
+      "_id": "req_get_portfolio",
+      "_type": "request",
+      "parentId": "fld_portfolios",
+      "name": "Buscar portfólio por usuário",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/v1/custody/portfolios/user",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {{ _.token }}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"userId\": \"{{ _.user_id }}\"\n}"
+      }
+    },
+
+    {
+      "_id": "fld_assets",
+      "_type": "request_group",
+      "parentId": "wrk_custody",
+      "name": "📈 Ativos"
+    },
+    {
+      "_id": "req_create_asset",
+      "_type": "request",
+      "parentId": "fld_assets",
+      "name": "Criar ativo",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/v1/custody/assets",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {{ _.token }}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"ticker\": \"PETR4\",\n  \"name\": \"Petrobras\"\n}"
+      }
+    },
+    {
+      "_id": "req_list_assets",
+      "_type": "request",
+      "parentId": "fld_assets",
+      "name": "Listar todos os ativos",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/v1/custody/assets",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.token }}" }
+      ],
+      "body": { "mimeType": "application/json" }
+    },
+
+    {
+      "_id": "fld_orders",
+      "_type": "request_group",
+      "parentId": "wrk_custody",
+      "name": "📋 Ordens"
+    },
+    {
+      "_id": "req_create_order_buy",
+      "_type": "request",
+      "parentId": "fld_orders",
+      "name": "Criar ordem de COMPRA",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/v1/custody/orders",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {{ _.token }}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"portfolioId\": \"{{ _.portfolio_id }}\",\n  \"assetId\": \"{{ _.asset_id }}\",\n  \"type\": \"BUY\",\n  \"quantity\": 10.5\n}"
+      }
+    },
+    {
+      "_id": "req_create_order_sell",
+      "_type": "request",
+      "parentId": "fld_orders",
+      "name": "Criar ordem de VENDA",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/v1/custody/orders",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {{ _.token }}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"portfolioId\": \"{{ _.portfolio_id }}\",\n  \"assetId\": \"{{ _.asset_id }}\",\n  \"type\": \"SELL\",\n  \"quantity\": 5.0\n}"
+      }
+    },
+    {
+      "_id": "fld_events",
+      "_type": "request_group",
+      "parentId": "wrk_custody",
+      "name": "⚙️ Event Processor"
+    },
+    {
+      "_id": "req_get_processed_order",
+      "_type": "request",
+      "parentId": "fld_events",
+      "name": "Buscar ordem processada",
+      "method": "GET",
+      "url": "http://localhost:8083/api/v1/processed-orders/{{ _.order_id }}",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.token }}" }
+      ],
+      "body": { "mimeType": "application/json" }
+    },
+    {
+      "_id": "req_reprocess_order",
+      "_type": "request",
+      "parentId": "fld_events",
+      "name": "Reprocessar ordem manualmente",
+      "method": "POST",
+      "url": "http://localhost:8083/api/v1/processed-orders/reprocess",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {{ _.token }}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"orderId\": \"{{ _.order_id }}\"\n}"
+      }
+    },
+
+    {
+      "_id": "fld_audit",
+      "_type": "request_group",
+      "parentId": "wrk_custody",
+      "name": "🔍 Auditoria"
+    },
+    {
+      "_id": "req_audit_by_order",
+      "_type": "request",
+      "parentId": "fld_audit",
+      "name": "Histórico de auditoria por ordem",
+      "method": "GET",
+      "url": "http://localhost:8084/api/v1/audit/order/{{ _.order_id }}",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.token }}" }
+      ],
+      "body": { "mimeType": "application/json" }
+    },
+    {
+      "_id": "req_audit_by_portfolio",
+      "_type": "request",
+      "parentId": "fld_audit",
+      "name": "Histórico de auditoria por portfólio",
+      "method": "GET",
+      "url": "http://localhost:8084/api/v1/audit/portfolio/{{ _.portfolio_id }}",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.token }}" }
+      ],
+      "body": { "mimeType": "application/json" }
+    }
+  ]
+}

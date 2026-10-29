@@ -32,12 +32,42 @@ spring:
           filters:
             - AuthenticationFilter
 
+        # Roteamento para o microsserviço de Auditoria
+        - id: audit-service
+          uri: http://localhost:8084
+          predicates:
+            - Path=/api/v1/audit/**
+          filters:
+            - AuthenticationFilter
+
+# JWT Configuration (mesma chave do auth-service)
+jwt:
+  secret: c3VwZXJzZWNyZXRrZXlmb3Jqd3R0aGF0aXNsb25nZW5vdWdoMTIzNDU2Nzg=
+
 # Configuração de Observabilidade e Endpoints
 management:
   endpoints:
     web:
       exposure:
-        include: health, info, metrics, gateway
+        include: health, info, metrics, gateway, prometheus
   endpoint:
     health:
       show-details: always
+    prometheus:
+      enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+
+# OpenTelemetry
+otel:
+  exporter:
+    otlp:
+      endpoint: http://localhost:4318
+  resource:
+    attributes:
+      service.name: ${spring.application.name}
+      service.version: 1.0.0
