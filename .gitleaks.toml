@@ -1,21 +1,58 @@
-# Configuração do Gitleaks para o projeto Plataforma de Custódia de Ativos.
+# Configuração do Gitleaks — Plataforma de Custódia de Ativos
 # Ref: https://github.com/gitleaks/gitleaks/blob/master/config/gitleaks.toml
+#
+# Todos os "segredos" aqui são credenciais de desenvolvimento local (Docker Compose),
+# não são credenciais de produção. Em produção, todas as credenciais vêm de
+# variáveis de ambiente / AWS Secrets Manager / Parameter Store.
 
 title = "Plataforma de Custódia — Gitleaks Config"
 
 [extend]
-# Herda todas as regras padrão do Gitleaks
 useDefault = true
 
 [[rules.allowlists]]
-description = "JWT secret de desenvolvimento nos application.yml"
-# Este é um Base64 de uma chave de desenvolvimento local usada apenas para testes locais.
-# Em produção a chave vem de variável de ambiente / AWS Secrets Manager.
-# Não é uma credencial real nem um segredo de produção.
+description = "Credenciais de desenvolvimento local — PostgreSQL Docker Compose"
+# custody_password é a senha do PostgreSQL local definida no docker-compose.yml.
+# Não é uma credencial de produção.
+regexes = [
+    '''custody_password'''
+]
+paths = [
+    '''docker-compose\.yml''',
+    '''docker-compose\.observability\.yml''',
+    '''api-gateway/src/main/resources/application\.yml''',
+    '''auth-service/src/main/resources/application\.yml''',
+    '''custody-service/src/main/resources/application\.yml''',
+    '''audit-service/src/main/resources/application\.yml''',
+    '''event-processor/src/main/resources/application\.properties''',
+    '''event-processor/bin/.*'''
+]
+
+[[rules.allowlists]]
+description = "JWT secret de desenvolvimento local"
+# Base64 de uma chave de desenvolvimento usada apenas localmente.
+# Em produção a chave vem de variável de ambiente.
 regexes = [
     '''c3VwZXJzZWNyZXRrZXlmb3Jqd3R0aGF0aXNsb25nZW5vdWdoMTIzNDU2Nzg='''
 ]
 paths = [
     '''api-gateway/src/main/resources/application\.yml''',
     '''auth-service/src/main/resources/application\.yml'''
+]
+
+[[rules.allowlists]]
+description = "Default JWT secret no código Java — valor de fallback para dev local"
+# Valor default usado apenas quando jwt.secret não está configurado no ambiente.
+regexes = [
+    '''defaultSecretKey12345678901234567890'''
+]
+paths = [
+    '''api-gateway/src/main/java/.*JwtUtil\.java''',
+    '''auth-service/src/main/java/.*JwtService\.java'''
+]
+
+[[rules.allowlists]]
+description = "Pasta bin/ do IntelliJ IDEA — arquivos de build local, não são código-fonte"
+paths = [
+    '''(api-gateway|auth-service|custody-service|event-processor|audit-service)/bin/.*'''
 ]
