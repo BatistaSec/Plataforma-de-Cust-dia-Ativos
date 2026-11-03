@@ -21,8 +21,11 @@ public class PortfolioAssetEntity {
     @JoinColumn(name = "asset_id", nullable = false)
     private AssetEntity asset;
 
-    @Column(nullable = false)
+    @Column(nullable = false, precision = 38, scale = 5)
     private BigDecimal quantity;
+
+    @Version
+    private Long version;
 
     public PortfolioAssetEntity() {}
 
@@ -37,4 +40,7 @@ public class PortfolioAssetEntity {
 
     public BigDecimal getQuantity() { return quantity; }
     public void setQuantity(BigDecimal quantity) { this.quantity = quantity; }
+
+    public Long getVersion() { return version; }
+    public void setVersion(Long version) { this.version = version; }
 }

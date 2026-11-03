@@ -1,6 +1,7 @@
 package com.custody.custody_service.presentation.controllers;
 
 import com.custody.custody_service.domain.exceptions.BusinessException;
+import com.custody.custody_service.domain.exceptions.InsufficientBalanceException;
 import com.custody.custody_service.domain.exceptions.InvalidQuantityException;
 import com.custody.custody_service.domain.exceptions.PortfolioAlreadyExistsException;
 import com.custody.custody_service.domain.exceptions.ResourceNotFoundException;
@@ -8,6 +9,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -42,6 +44,24 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, Object>> handleInvalidQuantity(InvalidQuantityException ex) {
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(Map.of(
                 "error", ex.getMessage(),
+                "timestamp", LocalDateTime.now().toString()
+        ));
+    }
+
+    // 422 — saldo insuficiente para ordem SELL
+    @ExceptionHandler(InsufficientBalanceException.class)
+    public ResponseEntity<Map<String, Object>> handleInsufficientBalance(InsufficientBalanceException ex) {
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(Map.of(
+                "error", ex.getMessage(),
+                "timestamp", LocalDateTime.now().toString()
+        ));
+    }
+
+    // 409 — conflito de concorrência otimista (@Version)
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    public ResponseEntity<Map<String, Object>> handleOptimisticLock(ObjectOptimisticLockingFailureException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of(
+                "error", "Conflito de concorrência: a posição foi modificada por outra operação. Tente novamente.",
                 "timestamp", LocalDateTime.now().toString()
         ));
     }
@@ -102,12 +122,11 @@ public class GlobalExceptionHandler {
         ));
     }
 
-    // 500 — fallback com mensagem real
+    // 500 — fallback com mensagem genérica (nunca expõe ex.getMessage())
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGeneric(Exception ex) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
                 "error", "Erro interno do servidor",
-                "detail", ex.getMessage() != null ? ex.getMessage() : "Erro desconhecido",
                 "timestamp", LocalDateTime.now().toString()
         ));
     }

@@ -1,0 +1,20 @@
+# Test profile — Testcontainers @ServiceConnection overrides datasource/kafka URLs automatically.
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+  kafka:
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.add.type.headers: false
+
+logging:
+  level:
+    org.hibernate.SQL: warn
+    org.hibernate.orm.jdbc.bind: warn

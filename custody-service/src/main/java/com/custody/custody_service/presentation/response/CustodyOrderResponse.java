@@ -16,6 +16,7 @@ public class CustodyOrderResponse {
     private BigDecimal quantity;
     private OrderStatus status;
     private LocalDateTime createdAt;
+    private UUID idempotencyKey;
 
     public CustodyOrderResponse() {}
 
@@ -30,6 +31,19 @@ public class CustodyOrderResponse {
         this.createdAt = createdAt;
     }
 
+    public CustodyOrderResponse(UUID id, UUID portfolioId, UUID assetId, OrderType type,
+                                 BigDecimal quantity, OrderStatus status, LocalDateTime createdAt,
+                                 UUID idempotencyKey) {
+        this.id = id;
+        this.portfolioId = portfolioId;
+        this.assetId = assetId;
+        this.type = type;
+        this.quantity = quantity;
+        this.status = status;
+        this.createdAt = createdAt;
+        this.idempotencyKey = idempotencyKey;
+    }
+
     public UUID getId() { return id; }
     public UUID getPortfolioId() { return portfolioId; }
     public UUID getAssetId() { return assetId; }
@@ -37,4 +51,5 @@ public class CustodyOrderResponse {
     public BigDecimal getQuantity() { return quantity; }
     public OrderStatus getStatus() { return status; }
     public LocalDateTime getCreatedAt() { return createdAt; }
+    public UUID getIdempotencyKey() { return idempotencyKey; }
 }

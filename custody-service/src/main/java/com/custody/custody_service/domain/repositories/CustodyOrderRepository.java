@@ -13,5 +13,7 @@ public interface CustodyOrderRepository {
 
     Optional<CustodyOrder> findById(UUID id);
 
+    Optional<CustodyOrder> findByIdempotencyKey(UUID idempotencyKey);
+
     List<CustodyOrder> findByPortfolioId(UUID portfolioId);
 }

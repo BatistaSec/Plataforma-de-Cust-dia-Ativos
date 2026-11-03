@@ -28,12 +28,15 @@ public class CustodyOrderEntity {
     @Column(nullable = false)
     private OrderType type;
 
-    @Column(nullable = false)
+    @Column(nullable = false, precision = 38, scale = 5)
     private BigDecimal quantity;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private OrderStatus status;
+
+    @Column(name = "idempotency_key", unique = true)
+    private UUID idempotencyKey;
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
@@ -72,6 +75,9 @@ public class CustodyOrderEntity {
 
     public OrderStatus getStatus() { return status; }
     public void setStatus(OrderStatus status) { this.status = status; }
+
+    public UUID getIdempotencyKey() { return idempotencyKey; }
+    public void setIdempotencyKey(UUID idempotencyKey) { this.idempotencyKey = idempotencyKey; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }

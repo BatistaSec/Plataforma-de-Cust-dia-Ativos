@@ -22,6 +22,8 @@ public class CustodyOrderRequest {
     @DecimalMin(value = "0.000001", message = "quantidade precisa ser maior que zero")
     private BigDecimal quantity;
 
+    private UUID idempotencyKey;
+
     public CustodyOrderRequest() {}
 
     public UUID getPortfolioId() { return portfolioId; }
@@ -35,4 +37,7 @@ public class CustodyOrderRequest {
 
     public BigDecimal getQuantity() { return quantity; }
     public void setQuantity(BigDecimal quantity) { this.quantity = quantity; }
+
+    public UUID getIdempotencyKey() { return idempotencyKey; }
+    public void setIdempotencyKey(UUID idempotencyKey) { this.idempotencyKey = idempotencyKey; }
 }

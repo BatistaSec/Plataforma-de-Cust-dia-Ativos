@@ -13,6 +13,7 @@ public class CustodyOrderMapper {
         entity.setType(order.getType());
         entity.setQuantity(order.getQuantity());
         entity.setStatus(order.getStatus());
+        entity.setIdempotencyKey(order.getIdempotencyKey());
         // Portfolio e Asset entities devem ser resolvidos no adapter
         return entity;
     }
@@ -28,6 +29,7 @@ public class CustodyOrderMapper {
                 entity.getType(),
                 entity.getQuantity(),
                 entity.getStatus(),
+                entity.getIdempotencyKey(),
                 entity.getCreatedAt(),
                 entity.getUpdatedAt()
         );
