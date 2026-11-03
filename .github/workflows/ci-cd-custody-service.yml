@@ -113,17 +113,15 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Install Trivy
-        run: |
-          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin v0.61.0
-
       - name: Dependency vulnerability scan (Trivy)
-        run: |
-          trivy fs custody-service \
-            --exit-code 1 \
-            --ignore-unfixed \
-            --severity CRITICAL,HIGH \
-            --format table
+        uses: aquasecurity/trivy-action@0.31.0
+        with:
+          scan-type: 'fs'
+          scan-ref: 'custody-service'
+          exit-code: '1'
+          ignore-unfixed: true
+          severity: 'CRITICAL,HIGH'
+          format: 'table'
 
   docker:
     name: "4 · Docker Build & Scan + 5 · Push ECR"
@@ -166,13 +164,14 @@ jobs:
             custody-service/
 
       - name: Scan Docker image (Trivy)
-        run: |
-          trivy image \
-            --exit-code 1 \
-            --ignore-unfixed \
-            --severity CRITICAL \
-            --format table \
-            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+        uses: aquasecurity/trivy-action@0.31.0
+        with:
+          scan-type: 'image'
+          image-ref: '${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}'
+          exit-code: '1'
+          ignore-unfixed: true
+          severity: 'CRITICAL'
+          format: 'table'
 
       - name: Push image to ECR
         id: push
