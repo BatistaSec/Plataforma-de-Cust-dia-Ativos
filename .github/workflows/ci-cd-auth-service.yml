@@ -64,7 +64,7 @@ jobs:
     outputs:
       jar-path: ${{ steps.jar.outputs.jar-path }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Setup Java ${{ env.JAVA_VERSION }}
         uses: actions/setup-java@v4
@@ -98,7 +98,7 @@ jobs:
       checks: write
       pull-requests: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Setup Java ${{ env.JAVA_VERSION }}
         uses: actions/setup-java@v4
@@ -126,7 +126,7 @@ jobs:
     needs: build
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0   # necessário para o gitleaks verificar o histórico completo
 
@@ -157,7 +157,7 @@ jobs:
     outputs:
       image: ${{ steps.push.outputs.image }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Download jar
         uses: actions/download-artifact@v4
@@ -223,7 +223,7 @@ jobs:
       run:
         working-directory: terraform/auth-service
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
