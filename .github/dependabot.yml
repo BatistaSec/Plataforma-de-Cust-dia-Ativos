@@ -1,0 +1,140 @@
+version: 2
+
+updates:
+
+  # ── GitHub Actions ──────────────────────────────────────────────────────────
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "dependencies"
+      - "github-actions"
+    commit-message:
+      prefix: "ci"
+
+  # ── Maven: api-gateway ──────────────────────────────────────────────────────
+  - package-ecosystem: "maven"
+    directory: "/api-gateway"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "dependencies"
+      - "java"
+    commit-message:
+      prefix: "fix(deps)"
+    open-pull-requests-limit: 10
+
+  # ── Maven: auth-service ─────────────────────────────────────────────────────
+  - package-ecosystem: "maven"
+    directory: "/auth-service"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "dependencies"
+      - "java"
+    commit-message:
+      prefix: "fix(deps)"
+    open-pull-requests-limit: 10
+
+  # ── Maven: custody-service ──────────────────────────────────────────────────
+  - package-ecosystem: "maven"
+    directory: "/custody-service"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "dependencies"
+      - "java"
+    commit-message:
+      prefix: "fix(deps)"
+    open-pull-requests-limit: 10
+
+  # ── Maven: event-processor ──────────────────────────────────────────────────
+  - package-ecosystem: "maven"
+    directory: "/event-processor"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "dependencies"
+      - "java"
+    commit-message:
+      prefix: "fix(deps)"
+    open-pull-requests-limit: 10
+
+  # ── Maven: audit-service ────────────────────────────────────────────────────
+  - package-ecosystem: "maven"
+    directory: "/audit-service"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "dependencies"
+      - "java"
+    commit-message:
+      prefix: "fix(deps)"
+    open-pull-requests-limit: 10
+
+  # ── Docker: api-gateway ─────────────────────────────────────────────────────
+  - package-ecosystem: "docker"
+    directory: "/api-gateway"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "dependencies"
+      - "docker"
+    commit-message:
+      prefix: "fix(deps)"
+
+  # ── Docker: auth-service ────────────────────────────────────────────────────
+  - package-ecosystem: "docker"
+    directory: "/auth-service"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "dependencies"
+      - "docker"
+    commit-message:
+      prefix: "fix(deps)"
+
+  # ── Docker: custody-service ─────────────────────────────────────────────────
+  - package-ecosystem: "docker"
+    directory: "/custody-service"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "dependencies"
+      - "docker"
+    commit-message:
+      prefix: "fix(deps)"
+
+  # ── Docker: event-processor ─────────────────────────────────────────────────
+  - package-ecosystem: "docker"
+    directory: "/event-processor"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "dependencies"
+      - "docker"
+    commit-message:
+      prefix: "fix(deps)"
+
+  # ── Docker: audit-service ───────────────────────────────────────────────────
+  - package-ecosystem: "docker"
+    directory: "/audit-service"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "dependencies"
+      - "docker"
+    commit-message:
+      prefix: "fix(deps)"

@@ -1,0 +1,12 @@
+# .gitleaksignore
+# Fingerprints de findings conhecidos que são falsos positivos ou segredos de desenvolvimento.
+# Ref: https://github.com/gitleaks/gitleaks?tab=readme-ov-file#gitleaksignore
+#
+# jwt.secret nos application.yml — chave de desenvolvimento local, não é credencial de produção.
+# Em produção, a chave é injetada via variável de ambiente / AWS Secrets Manager.
+# Arquivos afetados:
+#   api-gateway/src/main/resources/application.yml
+#   auth-service/src/main/resources/application.yml
+
+ae679c4:api-gateway/src/main/resources/application.yml:generic-api-key:45
+ae679c4:auth-service/src/main/resources/application.yml:generic-api-key:22

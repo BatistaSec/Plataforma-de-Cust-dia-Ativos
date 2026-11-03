@@ -1,0 +1,175 @@
+<svg viewBox="0 0 1100 520" xmlns="http://www.w3.org/2000/svg" font-family="'Segoe UI', Arial, sans-serif">
+  <!-- Background -->
+  <rect width="1100" height="520" fill="#0d1117"/>
+
+  <!-- Outer dashed border -->
+  <rect x="10" y="10" width="1080" height="500" rx="12" fill="none" stroke="#30363d" stroke-width="1.5" stroke-dasharray="8,4"/>
+
+  <!-- ─── OBSERVABILITY (top-right) ─── -->
+  <rect x="720" y="22" width="200" height="68" rx="8" fill="#161b22" stroke="#30363d" stroke-width="1.2" stroke-dasharray="5,3"/>
+  <text x="820" y="38" text-anchor="middle" font-size="9" fill="#e34c26" font-weight="bold">OpenTelemetry</text>
+  <text x="820" y="50" text-anchor="middle" font-size="8" fill="#8b949e">OTel Collector</text>
+  <text x="820" y="62" text-anchor="middle" font-size="7.5" fill="#8b949e">4317 gRPC · 4318 HTTP</text>
+  <circle cx="786" cy="47" r="10" fill="#e34c26" opacity=".15"/>
+  <circle cx="786" cy="47" r="6" fill="none" stroke="#e34c26" stroke-width="2"/>
+  <circle cx="786" cy="47" r="2.5" fill="#e34c26"/>
+
+  <!-- Prometheus -->
+  <rect x="932" y="22" width="90" height="68" rx="8" fill="#161b22" stroke="#30363d" stroke-width="1.2"/>
+  <circle cx="977" cy="47" r="14" fill="#e6522c" opacity=".2"/>
+  <circle cx="977" cy="47" r="9" fill="#e6522c" opacity=".5"/>
+  <circle cx="977" cy="47" r="5" fill="#e6522c"/>
+  <text x="977" y="80" text-anchor="middle" font-size="8.5" fill="#e6522c" font-weight="bold">Prometheus</text>
+  <text x="977" y="90" text-anchor="middle" font-size="7.5" fill="#8b949e">:9090</text>
+
+  <!-- Grafana -->
+  <rect x="830" y="22" width="90" height="68" rx="8" fill="#161b22" stroke="#30363d" stroke-width="1.2"/>
+  <circle cx="875" cy="47" r="14" fill="#f46800" opacity=".2"/>
+  <circle cx="875" cy="47" r="9" fill="#f46800" opacity=".4"/>
+  <circle cx="875" cy="47" r="5" fill="#f46800"/>
+  <text x="875" y="80" text-anchor="middle" font-size="8.5" fill="#f46800" font-weight="bold">Grafana</text>
+  <text x="875" y="90" text-anchor="middle" font-size="7.5" fill="#8b949e">:3000</text>
+
+  <line x1="930" y1="56" x2="922" y2="56" stroke="#8b949e" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arr-gray)"/>
+  <line x1="830" y1="56" x2="822" y2="56" stroke="#8b949e" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arr-gray)"/>
+
+  <!-- ─── MAIN CONTAINER ─── -->
+  <rect x="26" y="98" width="1048" height="390" rx="10" fill="#0d1117" stroke="#21262d" stroke-width="1.5"/>
+
+  <!-- ─── API GATEWAY ─── -->
+  <rect x="36" y="200" width="70" height="200" rx="8" fill="#161b22" stroke="#30363d" stroke-width="1.5"/>
+  <text x="71" y="300" text-anchor="middle" font-size="9" fill="#8b949e" font-weight="bold" transform="rotate(-90,71,300)">API GATEWAY · :8080</text>
+  <circle cx="71" cy="370" r="10" fill="#6db33f" opacity=".3"/>
+  <text x="71" y="374" text-anchor="middle" font-size="11" fill="#6db33f">⚡</text>
+
+  <!-- ─── AUTH SERVICE ─── -->
+  <rect x="138" y="110" width="145" height="130" rx="8" fill="#161b22" stroke="#21262d" stroke-width="1.5"/>
+  <rect x="145" y="116" width="22" height="22" rx="4" fill="#d82c20" opacity=".8"/>
+  <text x="156" y="131" text-anchor="middle" font-size="10" fill="white" font-weight="bold">R</text>
+  <rect x="172" y="116" width="22" height="22" rx="4" fill="#336791" opacity=".8"/>
+  <text x="183" y="131" text-anchor="middle" font-size="10" fill="white" font-weight="bold">Pg</text>
+  <text x="210" y="128" text-anchor="middle" font-size="8" fill="#8b949e">JWT · Spring Security</text>
+  <rect x="145" y="148" width="130" height="40" rx="6" fill="#0d1117" stroke="#30363d" stroke-width="1"/>
+  <text x="210" y="163" text-anchor="middle" font-size="10" fill="#c9d1d9" font-weight="bold">auth-service</text>
+  <text x="210" y="178" text-anchor="middle" font-size="8.5" fill="#58a6ff">:8081</text>
+  <circle cx="210" cy="218" r="12" fill="#00acd7" opacity=".2"/>
+  <text x="210" y="222" text-anchor="middle" font-size="14">🐹</text>
+
+  <!-- ─── CUSTODY SERVICE ─── -->
+  <rect x="310" y="110" width="175" height="160" rx="8" fill="#161b22" stroke="#21262d" stroke-width="1.5"/>
+  <rect x="317" y="116" width="22" height="22" rx="4" fill="#336791" opacity=".8"/>
+  <text x="328" y="131" text-anchor="middle" font-size="10" fill="white" font-weight="bold">Pg</text>
+  <rect x="344" y="116" width="22" height="22" rx="4" fill="#d82c20" opacity=".8"/>
+  <text x="355" y="131" text-anchor="middle" font-size="9.5" fill="white" font-weight="bold">R</text>
+  <text x="415" y="128" text-anchor="middle" font-size="8" fill="#8b949e">Cache · DDD</text>
+  <rect x="317" y="148" width="160" height="40" rx="6" fill="#0d1117" stroke="#30363d" stroke-width="1"/>
+  <text x="397" y="163" text-anchor="middle" font-size="10" fill="#c9d1d9" font-weight="bold">custody-service</text>
+  <text x="397" y="178" text-anchor="middle" font-size="8.5" fill="#58a6ff">:8082</text>
+  <circle cx="397" cy="240" r="12" fill="#00acd7" opacity=".2"/>
+  <text x="397" y="244" text-anchor="middle" font-size="14">🐹</text>
+  <!-- Kafka producer badge -->
+  <rect x="330" y="263" width="120" height="30" rx="6" fill="#1c2128" stroke="#30363d" stroke-width="1"/>
+  <text x="390" y="275" text-anchor="middle" font-size="8.5" fill="#c9d1d9">⚡ kafka producer</text>
+  <text x="390" y="287" text-anchor="middle" font-size="7" fill="#8b949e">custody-orders-topic</text>
+
+  <!-- ─── EVENT PROCESSOR ─── -->
+  <rect x="545" y="110" width="175" height="160" rx="8" fill="#161b22" stroke="#21262d" stroke-width="1.5"/>
+  <rect x="552" y="116" width="22" height="22" rx="4" fill="#336791" opacity=".8"/>
+  <text x="563" y="131" text-anchor="middle" font-size="10" fill="white" font-weight="bold">Pg</text>
+  <text x="640" y="128" text-anchor="middle" font-size="8" fill="#8b949e">Idempotência · DLT</text>
+  <rect x="552" y="148" width="160" height="40" rx="6" fill="#0d1117" stroke="#30363d" stroke-width="1"/>
+  <text x="632" y="163" text-anchor="middle" font-size="10" fill="#c9d1d9" font-weight="bold">event-processor</text>
+  <text x="632" y="178" text-anchor="middle" font-size="8.5" fill="#58a6ff">:8083</text>
+  <circle cx="632" cy="240" r="12" fill="#00acd7" opacity=".2"/>
+  <text x="632" y="244" text-anchor="middle" font-size="14">🐹</text>
+  <!-- Kafka producer badge -->
+  <rect x="562" y="263" width="120" height="30" rx="6" fill="#1c2128" stroke="#30363d" stroke-width="1"/>
+  <text x="622" y="275" text-anchor="middle" font-size="8.5" fill="#c9d1d9">⚡ kafka producer</text>
+  <text x="622" y="287" text-anchor="middle" font-size="7" fill="#8b949e">processed-orders-topic</text>
+
+  <!-- ─── AUDIT SERVICE ─── -->
+  <rect x="790" y="110" width="175" height="160" rx="8" fill="#161b22" stroke="#21262d" stroke-width="1.5"/>
+  <rect x="797" y="116" width="22" height="22" rx="4" fill="#336791" opacity=".8"/>
+  <text x="808" y="131" text-anchor="middle" font-size="10" fill="white" font-weight="bold">Pg</text>
+  <text x="892" y="128" text-anchor="middle" font-size="8" fill="#8b949e">Paginação · Filtros</text>
+  <rect x="797" y="148" width="160" height="40" rx="6" fill="#0d1117" stroke="#30363d" stroke-width="1"/>
+  <text x="877" y="163" text-anchor="middle" font-size="10" fill="#c9d1d9" font-weight="bold">audit-service</text>
+  <text x="877" y="178" text-anchor="middle" font-size="8.5" fill="#58a6ff">:8084</text>
+  <circle cx="877" cy="240" r="12" fill="#00acd7" opacity=".2"/>
+  <text x="877" y="244" text-anchor="middle" font-size="14">🐹</text>
+  <!-- Kafka consumer badge -->
+  <rect x="800" y="263" width="150" height="30" rx="6" fill="#1c2128" stroke="#30363d" stroke-width="1"/>
+  <text x="875" y="275" text-anchor="middle" font-size="8.5" fill="#c9d1d9">⚡ kafka consumer</text>
+  <text x="875" y="287" text-anchor="middle" font-size="7" fill="#8b949e">ambos os tópicos</text>
+
+  <!-- ─── FLOW ARROWS ─── -->
+  <!-- GW → Auth -->
+  <line x1="106" y1="250" x2="138" y2="200" stroke="#3fb950" stroke-width="1.8" marker-end="url(#arr-green)"/>
+  <!-- GW → Custody -->
+  <line x1="106" y1="270" x2="310" y2="230" stroke="#3fb950" stroke-width="1.8" marker-end="url(#arr-green)"/>
+
+  <!-- Custody → kafka (order.created green) -->
+  <line x1="450" y1="278" x2="545" y2="278" stroke="#3fb950" stroke-width="1.8" marker-end="url(#arr-green)"/>
+  <rect x="456" y="262" width="83" height="13" rx="3" fill="#0d1117"/>
+  <text x="498" y="272" text-anchor="middle" font-size="7.5" fill="#3fb950">order.created</text>
+
+  <!-- Event-processor kafka → audit (processed.orders) -->
+  <line x1="682" y1="278" x2="790" y2="278" stroke="#3fb950" stroke-width="1.8" marker-end="url(#arr-green)"/>
+  <rect x="688" y="262" width="96" height="13" rx="3" fill="#0d1117"/>
+  <text x="736" y="272" text-anchor="middle" font-size="7.5" fill="#3fb950">order.processed</text>
+
+  <!-- Custody kafka → Audit (ORDER_CREATED dashed arc) -->
+  <path d="M 450 293 Q 620 390 790 293" fill="none" stroke="#3fb950" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arr-green)"/>
+  <text x="616" y="380" text-anchor="middle" font-size="7.5" fill="#3fb950">ORDER_CREATED</text>
+
+  <!-- Services metrics → OTel -->
+  <path d="M 210 110 Q 210 65 720 56" fill="none" stroke="#8b949e" stroke-width="1" stroke-dasharray="3,3" marker-end="url(#arr-gray)"/>
+  <path d="M 397 110 Q 397 68 720 56" fill="none" stroke="#8b949e" stroke-width="1" stroke-dasharray="3,3"/>
+  <path d="M 632 110 Q 632 66 720 56" fill="none" stroke="#8b949e" stroke-width="1" stroke-dasharray="3,3"/>
+  <path d="M 877 110 Q 877 65 924 56" fill="none" stroke="#8b949e" stroke-width="1" stroke-dasharray="3,3"/>
+  <text x="580" y="72" text-anchor="middle" font-size="7" fill="#8b949e">métricas · traces</text>
+
+  <!-- ─── LEGEND ─── -->
+  <rect x="36" y="320" width="280" height="145" rx="8" fill="#161b22" stroke="#21262d" stroke-width="1"/>
+  <text x="46" y="338" font-size="9" fill="#8b949e" font-weight="bold">LEGENDA</text>
+  <line x1="46" y1="350" x2="80" y2="350" stroke="#3fb950" stroke-width="2" marker-end="url(#arr-green)"/>
+  <text x="85" y="354" font-size="8.5" fill="#c9d1d9">Fluxo HTTP / Kafka (síncrono)</text>
+  <line x1="46" y1="368" x2="80" y2="368" stroke="#3fb950" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arr-green)"/>
+  <text x="85" y="372" font-size="8.5" fill="#c9d1d9">Evento Kafka assíncrono</text>
+  <line x1="46" y1="386" x2="80" y2="386" stroke="#8b949e" stroke-width="1" stroke-dasharray="3,3" marker-end="url(#arr-gray)"/>
+  <text x="85" y="390" font-size="8.5" fill="#c9d1d9">Métricas / Traces (OTel)</text>
+  <rect x="46" y="398" width="14" height="14" rx="3" fill="#336791" opacity=".8"/>
+  <text x="53" y="409" text-anchor="middle" font-size="8" fill="white" font-weight="bold">Pg</text>
+  <text x="65" y="409" font-size="8.5" fill="#c9d1d9">PostgreSQL 16</text>
+  <rect x="150" y="398" width="14" height="14" rx="3" fill="#d82c20" opacity=".8"/>
+  <text x="157" y="409" text-anchor="middle" font-size="8" fill="white" font-weight="bold">R</text>
+  <text x="169" y="409" font-size="8.5" fill="#c9d1d9">Redis 7</text>
+  <text x="46" y="428" font-size="8.5" fill="#c9d1d9">⚡ Apache Kafka · KRaft (sem Zookeeper)</text>
+  <text x="46" y="445" font-size="8.5" fill="#c9d1d9">🐹 Spring Boot 3.4 · Java 21</text>
+  <text x="46" y="459" font-size="8.5" fill="#c9d1d9">🏗️  Clean Architecture · DDD · SOLID · EDA</text>
+
+  <!-- ─── AWS / CICD BADGE ─── -->
+  <rect x="750" y="320" width="320" height="145" rx="8" fill="#161b22" stroke="#21262d" stroke-width="1"/>
+  <text x="760" y="338" font-size="9" fill="#8b949e" font-weight="bold">INFRAESTRUTURA AWS</text>
+  <text x="760" y="355" font-size="8.5" fill="#c9d1d9">🏗️  ECS Fargate  ·  ECR  ·  ALB  ·  VPC</text>
+  <text x="760" y="371" font-size="8.5" fill="#c9d1d9">🗄️  RDS PostgreSQL 16  ·  ElastiCache Redis</text>
+  <text x="760" y="387" font-size="8.5" fill="#c9d1d9">📨  MSK Kafka  ·  CloudWatch  ·  Terraform</text>
+  <line x1="750" y1="398" x2="1070" y2="398" stroke="#21262d" stroke-width="1"/>
+  <text x="760" y="413" font-size="9" fill="#8b949e" font-weight="bold">CI/CD — 9 ETAPAS (GitHub Actions)</text>
+  <text x="760" y="429" font-size="8.5" fill="#c9d1d9">🔒  Gitleaks + Trivy (fs + image)</text>
+  <text x="760" y="445" font-size="8.5" fill="#c9d1d9">🐳  Docker → ECR (SHA + latest)</text>
+  <text x="760" y="461" font-size="8.5" fill="#c9d1d9">🔄  Terraform → ECS → Smoke → Rollback</text>
+
+  <!-- Footer -->
+  <text x="550" y="496" text-anchor="middle" font-size="9" fill="#21262d">Plataforma de Custódia de Ativos · github.com/BatistaSec/Plataforma-de-Cust-dia-Ativos</text>
+
+  <!-- ─── MARKERS ─── -->
+  <defs>
+    <marker id="arr-green" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#3fb950"/>
+    </marker>
+    <marker id="arr-gray" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#8b949e"/>
+    </marker>
+  </defs>
+</svg>

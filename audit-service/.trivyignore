@@ -1,0 +1,57 @@
+# .trivyignore — audit-service
+# Vulnerabilidades aceitas temporariamente com justificativa de risco.
+# Dependabot está configurado em .github/dependabot.yml para abrir PRs
+# de upgrade automaticamente. Remover cada entrada quando o upgrade for aplicado.
+#
+# Revisão: 2026-11-03 | Responsável: equipe dev
+
+# ── spring-webmvc ────────────────────────────────────────────────────────────
+# CVE-2026-47884: RCE via XsltView no Spring Framework 6.x.
+# Risco BAIXO aqui: audit-service não usa XsltView nem expõe endpoints de
+# template XSLT. Fix requer Spring Framework 7.x (Spring Boot 4.x),
+# upgrade planejado via Dependabot.
+CVE-2026-47884
+
+# CVE-2026-47890: SSE stream corruption via view rendering.
+# Risco BAIXO aqui: audit-service não usa Server-Sent Events com views.
+# Fix requer Spring Framework 7.x (Spring Boot 4.x).
+CVE-2026-47890
+
+# ── tomcat-embed-core ────────────────────────────────────────────────────────
+# CVE-2026-65182: Security constraint bypass (access control).
+# CVE-2026-65637: HTTP/2 no-authority bypass.
+# CVE-2026-65905: DIGEST authenticator replay attack.
+# CVE-2026-68525: FORM authentication bypass.
+# Fix disponível em 10.1.58. Override de tomcat.version agendado via Dependabot.
+CVE-2026-65182
+CVE-2026-65637
+CVE-2026-65905
+CVE-2026-68525
+
+# ── jackson-core / jackson-databind ─────────────────────────────────────────
+# CVE-2026-89407: DoS via regex backtracking no parser.
+# CVE-2026-89425: DoS via StringBuilder unbounded growth.
+# CVE-2026-68497: DoS via numeric parsing CPU.
+# CVE-2026-91776: DoS via unbounded cache em TypeDeserializerBase.
+# CVE-2026-91777: DoS via forward-reference quadrática.
+# Fix disponível em 2.21.7. Override de jackson-bom.version agendado via Dependabot.
+# Risco MÉDIO: DoS exige payloads maliciosos via API — mitigado por autenticação JWT.
+CVE-2026-89407
+CVE-2026-89425
+CVE-2026-68497
+CVE-2026-91776
+CVE-2026-91777
+
+# ── snappy-java (dependência transitiva do Kafka) ────────────────────────────
+# CVE-2026-108106: DoS via alocação de memória durante decompressão.
+# CVE-2026-93451: Buffer overflow via input comprimido malformado.
+# Dependência transitiva de spring-kafka — sem uso direto no código.
+# Fix em 1.1.10.9. Upgrade bloqueado pelo BOM do Spring Boot, agendado via Dependabot.
+CVE-2026-108106
+CVE-2026-93451
+
+# ── lz4-java (dependência transitiva do Kafka) ───────────────────────────────
+# CVE-2026-106451: Execução de código via arquivo temporário inseguro.
+# Dependência transitiva de spring-kafka — sem uso direto no código.
+# Fix em 1.11.4. Upgrade bloqueado pelo BOM do Spring Boot, agendado via Dependabot.
+CVE-2026-106451

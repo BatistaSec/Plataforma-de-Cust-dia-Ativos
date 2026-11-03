@@ -1,0 +1,25 @@
+# .trivyignore — api-gateway
+# Vulnerabilidades aceitas temporariamente com justificativa de risco.
+# Dependabot está configurado em .github/dependabot.yml para abrir PRs
+# de upgrade automaticamente. Remover cada entrada quando o upgrade for aplicado.
+#
+# Revisão: 2026-11-03 | Responsável: equipe dev
+
+# ── spring-webmvc / spring-webflux ───────────────────────────────────────────
+# CVE-2026-47884: RCE via XsltView no Spring Framework 6.x.
+# Risco BAIXO: api-gateway usa WebFlux (roteamento reativo), não WebMVC/XsltView.
+CVE-2026-47884
+
+# CVE-2026-47890: SSE stream corruption via view rendering.
+# Risco BAIXO: api-gateway não usa SSE com views — apenas proxy de rotas.
+CVE-2026-47890
+
+# ── jackson-core / jackson-databind ─────────────────────────────────────────
+# DoS — api-gateway não processa payloads JSON arbitrários de usuários,
+# apenas roteia requisições. Risco efetivamente BAIXO neste contexto.
+# Fix disponível em 2.21.7. Upgrade agendado via Dependabot.
+CVE-2026-89407
+CVE-2026-89425
+CVE-2026-68497
+CVE-2026-91776
+CVE-2026-91777

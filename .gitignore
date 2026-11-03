@@ -25,4 +25,7 @@ docker-compose.override.yml
 *.war
 *.ear
 
+# IntelliJ IDEA build output
+bin/
+
 DEVOPS_AWS_DEPLOY.md

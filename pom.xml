@@ -17,6 +17,7 @@
         <module>auth-service</module>
         <module>custody-service</module>
         <module>event-processor</module>
+        <module>audit-service</module>
     </modules>
 
     <build>
