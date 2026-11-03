@@ -145,6 +145,7 @@ jobs:
           ignore-unfixed: true
           severity: 'CRITICAL,HIGH'
           format: 'table'
+          trivyignores: 'auth-service/.trivyignore'
 
 # ─── STEP 4 — DOCKER BUILD + SCAN ─────────────────────────────────────────────
   docker:

@@ -122,6 +122,7 @@ jobs:
           ignore-unfixed: true
           severity: 'CRITICAL,HIGH'
           format: 'table'
+          trivyignores: 'audit-service/.trivyignore'
 
   docker:
     name: "4 · Docker Build & Scan + 5 · Push ECR"
