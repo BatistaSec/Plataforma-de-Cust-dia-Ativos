@@ -90,7 +90,7 @@ jobs:
         run: mvn -pl event-processor -am verify -B
 
       - name: Publish test report
-        uses: dorny/test-reporter@v1
+        uses: dorny/test-reporter@v3
         if: always()
         with:
           name: Event Processor — Test Report
