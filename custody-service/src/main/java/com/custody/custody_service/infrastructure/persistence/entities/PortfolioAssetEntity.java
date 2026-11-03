@@ -21,7 +21,7 @@ public class PortfolioAssetEntity {
     @JoinColumn(name = "asset_id", nullable = false)
     private AssetEntity asset;
 
-    @Column(nullable = false)
+    @Column(nullable = false, precision = 38, scale = 5)
     private BigDecimal quantity;
 
     @Version

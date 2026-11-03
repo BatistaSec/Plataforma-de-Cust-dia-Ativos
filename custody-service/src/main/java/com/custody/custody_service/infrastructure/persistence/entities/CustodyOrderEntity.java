@@ -28,7 +28,7 @@ public class CustodyOrderEntity {
     @Column(nullable = false)
     private OrderType type;
 
-    @Column(nullable = false)
+    @Column(nullable = false, precision = 38, scale = 5)
     private BigDecimal quantity;
 
     @Enumerated(EnumType.STRING)

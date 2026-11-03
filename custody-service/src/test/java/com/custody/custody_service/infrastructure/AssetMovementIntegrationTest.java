@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.KafkaContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -26,6 +27,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Testcontainers
+@Transactional
 @DisplayName("AssetMovement — immutability and index integration tests")
 class AssetMovementIntegrationTest {
 
@@ -70,7 +72,7 @@ class AssetMovementIntegrationTest {
 
         // Load and attempt to modify
         var loaded = assetMovementRepository.findById(entity.getId()).orElseThrow();
-        assertEquals(originalQty, loaded.getQuantity());
+        assertEquals(0, originalQty.compareTo(loaded.getQuantity()));
 
         loaded.setQuantity(new BigDecimal("999"));
         loaded.setType(MovementType.DEBIT);
@@ -81,7 +83,7 @@ class AssetMovementIntegrationTest {
 
         // Reload — values should be unchanged because @Column(updatable = false)
         var reloaded = assetMovementRepository.findById(entity.getId()).orElseThrow();
-        assertEquals(originalQty, reloaded.getQuantity(),
+        assertEquals(0, originalQty.compareTo(reloaded.getQuantity()),
                 "quantity should not change — column is updatable=false");
         assertEquals(MovementType.CREDIT, reloaded.getType(),
                 "type should not change — column is updatable=false");

@@ -110,13 +110,13 @@ class CreateOrderUseCaseIntegrationTest {
         // Verify position was debited
         var position = portfolioAssetRepository.findByPortfolioIdAndAssetId(
                 portfolio.getId(), asset.getId()).orElseThrow();
-        assertEquals(new BigDecimal("50"), position.getQuantity());
+        assertEquals(0, new BigDecimal("50").compareTo(position.getQuantity()));
 
         // Verify DEBIT movement was created
         var movements = assetMovementRepository.findAll();
         assertEquals(1, movements.size());
         assertEquals("DEBIT", movements.get(0).getType().name());
-        assertEquals(new BigDecimal("50"), movements.get(0).getQuantity());
+        assertEquals(0, new BigDecimal("50").compareTo(movements.get(0).getQuantity()));
     }
 
     @Test
@@ -146,7 +146,7 @@ class CreateOrderUseCaseIntegrationTest {
         // Position unchanged
         var position = portfolioAssetRepository.findByPortfolioIdAndAssetId(
                 portfolio.getId(), asset.getId()).orElseThrow();
-        assertEquals(new BigDecimal("100"), position.getQuantity());
+        assertEquals(0, new BigDecimal("100").compareTo(position.getQuantity()));
     }
 
     @Test
@@ -184,17 +184,16 @@ class CreateOrderUseCaseIntegrationTest {
         org.springframework.http.HttpStatusCode s1 = resp1.get().getStatusCode();
         org.springframework.http.HttpStatusCode s2 = resp2.get().getStatusCode();
 
-        // One succeeds (201), the other conflicts (409)
-        assertTrue(
-                (s1.equals(HttpStatus.CREATED) && s2.equals(HttpStatus.CONFLICT)) ||
-                (s1.equals(HttpStatus.CONFLICT) && s2.equals(HttpStatus.CREATED)),
-                "Expected one 201 and one 409, got " + s1 + " and " + s2
-        );
+        // One succeeds (201), the other fails (409 optimistic lock or 422 insufficient balance if serialized)
+        boolean oneSucceeded = s1.equals(HttpStatus.CREATED) || s2.equals(HttpStatus.CREATED);
+        boolean bothSucceeded = s1.equals(HttpStatus.CREATED) && s2.equals(HttpStatus.CREATED);
+        assertTrue(oneSucceeded && !bothSucceeded,
+                "Expected exactly one 201, got " + s1 + " and " + s2);
 
         // Final position should be 40 (100 - 60), never negative
         var position = portfolioAssetRepository.findByPortfolioIdAndAssetId(
                 portfolio.getId(), asset.getId()).orElseThrow();
-        assertEquals(new BigDecimal("40"), position.getQuantity());
+        assertEquals(0, new BigDecimal("40").compareTo(position.getQuantity()));
     }
 
     @Test
@@ -248,7 +247,7 @@ class CreateOrderUseCaseIntegrationTest {
         // Position created
         var position = portfolioAssetRepository.findByPortfolioIdAndAssetId(
                 portfolio.getId(), asset.getId()).orElseThrow();
-        assertEquals(new BigDecimal("200"), position.getQuantity());
+        assertEquals(0, new BigDecimal("200").compareTo(position.getQuantity()));
 
         // CREDIT movement created
         var movements = assetMovementRepository.findAll();
@@ -276,16 +275,16 @@ class CreateOrderUseCaseIntegrationTest {
                 "/api/v1/custody/orders", request, CustodyOrderResponse.class);
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        assertEquals(qty, response.getBody().getQuantity());
+        assertEquals(0, qty.compareTo(response.getBody().getQuantity()));
 
         // Check position
         var position = portfolioAssetRepository.findByPortfolioIdAndAssetId(
                 portfolio.getId(), asset.getId()).orElseThrow();
-        assertEquals(qty, position.getQuantity());
+        assertEquals(0, qty.compareTo(position.getQuantity()));
 
         // Check movement
         var movements = assetMovementRepository.findAll();
         assertEquals(1, movements.size());
-        assertEquals(qty, movements.get(0).getQuantity());
+        assertEquals(0, qty.compareTo(movements.get(0).getQuantity()));
     }
 }

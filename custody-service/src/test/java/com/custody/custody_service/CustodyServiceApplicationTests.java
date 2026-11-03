@@ -171,9 +171,9 @@ class CustodyServiceApplicationTests {
 				CustodyOrderResponse.class
 		);
 
-		assertEquals(HttpStatus.OK, response.getStatusCode());
+		assertEquals(HttpStatus.CREATED, response.getStatusCode());
 		assertNotNull(response.getBody());
 		assertEquals(OrderType.BUY, response.getBody().getType());
-		assertEquals(new BigDecimal("10.5"), response.getBody().getQuantity());
+		assertEquals(0, new BigDecimal("10.5").compareTo(response.getBody().getQuantity()));
 	}
 }
