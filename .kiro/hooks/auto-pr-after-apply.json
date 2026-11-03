@@ -1,0 +1,15 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Abrir PR após opsx-apply",
+      "trigger": "Stop",
+      "description": "Após o agente terminar uma sessão com alterações de código, cria branch feature/, commita, faz push e abre PR no GitHub automaticamente usando o nome da change OpenSpec ativa.",
+      "action": {
+        "type": "command",
+        "command": "\npowershell -NoProfile -Command \"\n$repoRoot = 'c:\\Users\\Canaljozo\\OneDrive\\Documentos\\curso\\meta-itau\\projeto-portifolio'\n\n# Lê o contexto da sessão do stdin (JSON enviado pelo Kiro)\n$input_json = $null\ntry { $input_json = $input | ConvertFrom-Json } catch {}\n\n# Verifica se há arquivos modificados para commitar\n$status = git -C $repoRoot status --porcelain 2>&1\nif (-not $status) {\n    Write-Host 'Nenhuma alteração para commitar. Hook encerrado.'\n    exit 0\n}\n\n# Detecta a change ativa do OpenSpec lendo a pasta changes/\n$changesDir = Join-Path $repoRoot 'openspec\\changes'\n$activeDirs = Get-ChildItem $changesDir -Directory -ErrorAction SilentlyContinue |\n              Where-Object { $_.Name -ne 'archive' } |\n              Sort-Object LastWriteTime -Descending\n\nif (-not $activeDirs) {\n    Write-Host 'Nenhuma change OpenSpec ativa encontrada. Hook encerrado.'\n    exit 0\n}\n\n$changeName = $activeDirs[0].Name\n$branchName = 'feature/' + $changeName\n\n# Verifica se já está na branch certa ou cria uma nova\n$currentBranch = git -C $repoRoot rev-parse --abbrev-ref HEAD 2>&1\nif ($currentBranch -eq $branchName) {\n    Write-Host \\\"Já na branch $branchName\\\"\n} elseif ($currentBranch -eq 'main') {\n    git -C $repoRoot checkout -b $branchName 2>&1\n    Write-Host \\\"Branch criada: $branchName\\\"\n} else {\n    Write-Host \\\"Branch atual: $currentBranch — usando ela para o PR\\\"\n    $branchName = $currentBranch\n}\n\n# Stage e commit de tudo\ngit -C $repoRoot add -A 2>&1\n$commitMsg = 'feat: implementa ' + $changeName\ngit -C $repoRoot commit -m $commitMsg 2>&1\n\n# Push da branch\ngit -C $repoRoot push -u origin $branchName 2>&1\n\n# Lê o proposal.md para usar como corpo do PR\n$proposalPath = Join-Path $changesDir \\\"$changeName\\proposal.md\\\"\n$prBody = ''\nif (Test-Path $proposalPath) {\n    $prBody = Get-Content $proposalPath -Raw -ErrorAction SilentlyContinue\n    if ($prBody.Length -gt 4000) { $prBody = $prBody.Substring(0, 4000) + '...' }\n}\n\n# Abre o PR\n$prTitle = 'feat: ' + $changeName\n$prOutput = gh pr create ``\n    --repo BatistaSec/Plataforma-de-Cust-dia-Ativos ``\n    --base main ``\n    --head $branchName ``\n    --title $prTitle ``\n    --body $prBody 2>&1\n\nWrite-Host $prOutput\n\"\n",
+        "timeout": 60
+      }
+    }
+  ]
+}

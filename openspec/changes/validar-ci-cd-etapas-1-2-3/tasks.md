@@ -22,9 +22,9 @@
 
 ## 3. Abrir PR de teste e verificar os checks
 
-- [ ] 3.1 Criar branch `ci/validar-etapas-1-2-3` com as alterações dos grupos 1 e 2; fazer push no GitHub.
+- [x] 3.1 Criar branch `ci/validar-etapas-1-2-3` com as alterações dos grupos 1 e 2; fazer push no GitHub.
 
-- [ ] 3.2 Abrir PR com título válido `ci: validar etapas 1-2-3 do pipeline` — verificar que o job `1 · Validate Branch` passa com ✅ em todos os 5 workflows.
+- [x] 3.2 Abrir PR com título válido `ci: validar etapas 1-2-3 do pipeline` — verificar que o job `1 · Validate Branch` passa com ✅ em todos os 5 workflows.
 
 - [ ] 3.3 Verificar que o job `2 · Build` passa com ✅ em todos os 5 serviços (JAR gerado e armazenado como artefato).
 
@@ -44,5 +44,5 @@
 
 ## Workflow follow-up
 
-- Após validação bem-sucedida, arquivar esta change: `/opsx-archive`.
+- Após validação bem-sucedida, arquivar esta change: `/  -archive`.
 - Com os checks verdes confirmados, qualquer PR futuro com título Conventional Commits já está protegido pelas etapas 1–3.
