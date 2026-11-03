@@ -1,0 +1,21 @@
+# Configuração do Gitleaks para o projeto Plataforma de Custódia de Ativos.
+# Ref: https://github.com/gitleaks/gitleaks/blob/master/config/gitleaks.toml
+
+title = "Plataforma de Custódia — Gitleaks Config"
+
+[extend]
+# Herda todas as regras padrão do Gitleaks
+useDefault = true
+
+[[rules.allowlists]]
+description = "JWT secret de desenvolvimento nos application.yml"
+# Este é um Base64 de uma chave de desenvolvimento local usada apenas para testes locais.
+# Em produção a chave vem de variável de ambiente / AWS Secrets Manager.
+# Não é uma credencial real nem um segredo de produção.
+regexes = [
+    '''c3VwZXJzZWNyZXRrZXlmb3Jqd3R0aGF0aXNsb25nZW5vdWdoMTIzNDU2Nzg='''
+]
+paths = [
+    '''api-gateway/src/main/resources/application\.yml''',
+    '''auth-service/src/main/resources/application\.yml'''
+]
