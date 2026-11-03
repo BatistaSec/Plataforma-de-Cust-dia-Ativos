@@ -136,15 +136,17 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         continue-on-error: false   # segredos no código bloqueiam o pipeline
 
-      - name: Dependency vulnerability scan (Trivy filesystem)
-        uses: aquasecurity/trivy-action@0.24.0
-        with:
-          scan-type: fs
-          scan-ref: auth-service
-          format: table
-          exit-code: '1'           # CRITICAL ou HIGH bloqueiam o pipeline
-          ignore-unfixed: true
-          severity: CRITICAL,HIGH
+      - name: Install Trivy
+        run: |
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin v0.61.0
+
+      - name: Dependency vulnerability scan (Trivy)
+        run: |
+          trivy fs auth-service \
+            --exit-code 1 \
+            --ignore-unfixed \
+            --severity CRITICAL,HIGH \
+            --format table
 
 # ─── STEP 4 — DOCKER BUILD + SCAN ─────────────────────────────────────────────
   docker:
@@ -189,13 +191,13 @@ jobs:
             auth-service/
 
       - name: Scan Docker image (Trivy)
-        uses: aquasecurity/trivy-action@0.24.0
-        with:
-          image-ref: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
-          format: table
-          exit-code: '1'
-          ignore-unfixed: true
-          severity: CRITICAL
+        run: |
+          trivy image \
+            --exit-code 1 \
+            --ignore-unfixed \
+            --severity CRITICAL \
+            --format table \
+            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
 
       # ── STEP 5: Push para ECR (SHA + latest) ─────────────────────────────
       - name: Push image to ECR
