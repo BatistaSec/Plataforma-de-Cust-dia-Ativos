@@ -24,6 +24,9 @@ public class PortfolioAssetEntity {
     @Column(nullable = false)
     private BigDecimal quantity;
 
+    @Version
+    private Long version;
+
     public PortfolioAssetEntity() {}
 
     public UUID getId() { return id; }
@@ -37,4 +40,7 @@ public class PortfolioAssetEntity {
 
     public BigDecimal getQuantity() { return quantity; }
     public void setQuantity(BigDecimal quantity) { this.quantity = quantity; }
+
+    public Long getVersion() { return version; }
+    public void setVersion(Long version) { this.version = version; }
 }

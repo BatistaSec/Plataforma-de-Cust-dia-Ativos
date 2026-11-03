@@ -17,6 +17,7 @@ public class CustodyOrder {
     private OrderType type;
     private BigDecimal quantity;
     private OrderStatus status;
+    private UUID idempotencyKey;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -33,8 +34,21 @@ public class CustodyOrder {
         this.updatedAt = LocalDateTime.now();
     }
 
+    public CustodyOrder(Portfolio portfolio, Asset asset, OrderType type, BigDecimal quantity,
+                        OrderStatus status, UUID idempotencyKey) {
+        validateQuantity(quantity);
+        this.portfolio = portfolio;
+        this.asset = asset;
+        this.type = type;
+        this.quantity = quantity;
+        this.status = status;
+        this.idempotencyKey = idempotencyKey;
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
+
     public CustodyOrder(UUID id, Portfolio portfolio, Asset asset, OrderType type,
-                         BigDecimal quantity, OrderStatus status,
+                         BigDecimal quantity, OrderStatus status, UUID idempotencyKey,
                          LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.portfolio = portfolio;
@@ -42,6 +56,7 @@ public class CustodyOrder {
         this.type = type;
         this.quantity = quantity;
         this.status = status;
+        this.idempotencyKey = idempotencyKey;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
@@ -61,6 +76,7 @@ public class CustodyOrder {
     public OrderType getType() { return type; }
     public BigDecimal getQuantity() { return quantity; }
     public OrderStatus getStatus() { return status; }
+    public UUID getIdempotencyKey() { return idempotencyKey; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
 

@@ -25,7 +25,8 @@ public class PortfolioMapper {
                                 paEntity.getId(),
                                 portfolio,
                                 asset,
-                                paEntity.getQuantity()
+                                paEntity.getQuantity(),
+                                paEntity.getVersion()
                         );
                     })
                     .collect(Collectors.toList());

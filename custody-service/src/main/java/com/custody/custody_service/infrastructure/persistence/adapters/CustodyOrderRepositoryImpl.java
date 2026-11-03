@@ -38,6 +38,11 @@ public class CustodyOrderRepositoryImpl implements CustodyOrderRepository {
     }
 
     @Override
+    public Optional<CustodyOrder> findByIdempotencyKey(UUID idempotencyKey) {
+        return springDataRepository.findByIdempotencyKey(idempotencyKey).map(CustodyOrderMapper::toDomain);
+    }
+
+    @Override
     public List<CustodyOrder> findByPortfolioId(UUID portfolioId) {
         return springDataRepository.findByPortfolioId(portfolioId).stream()
                 .map(CustodyOrderMapper::toDomain)

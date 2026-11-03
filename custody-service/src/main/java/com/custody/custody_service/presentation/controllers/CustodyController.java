@@ -8,6 +8,7 @@ import com.custody.custody_service.presentation.request.CustodyOrderRequest;
 import com.custody.custody_service.presentation.request.GetPortfolioRequest;
 import com.custody.custody_service.presentation.response.*;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -70,18 +71,24 @@ public class CustodyController {
                 request.getPortfolioId(),
                 request.getAssetId(),
                 request.getType(),
-                request.getQuantity()
+                request.getQuantity(),
+                request.getIdempotencyKey()
         );
         var output = createOrderUseCase.execute(input);
-        return ResponseEntity.ok(new CustodyOrderResponse(
+        var response = new CustodyOrderResponse(
                 output.getId(),
                 output.getPortfolioId(),
                 output.getAssetId(),
                 output.getType(),
                 output.getQuantity(),
                 output.getStatus(),
-                output.getCreatedAt()
-        ));
+                output.getCreatedAt(),
+                output.getIdempotencyKey()
+        );
+        if (output.isAlreadyExisted()) {
+            return ResponseEntity.ok(response);
+        }
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     private PortfolioResponse toPortfolioResponse(PortfolioOutput output) {

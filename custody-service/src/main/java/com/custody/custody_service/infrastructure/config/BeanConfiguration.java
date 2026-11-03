@@ -5,6 +5,8 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class BeanConfiguration {
-    // Atualmente, a injeção de dependências é feita via anotações (@Component, @Service).
-    // Se necessário, beans manuais podem ser registrados aqui.
+    // Beans are auto-registered via annotations:
+    // - SpringDataPortfolioAssetRepository (@Repository)
+    // - SpringDataAssetMovementRepository (@Repository)
+    // - AssetMovementRepositoryImpl (@Component)
 }

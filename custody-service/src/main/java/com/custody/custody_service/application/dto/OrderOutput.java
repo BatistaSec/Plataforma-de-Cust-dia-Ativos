@@ -16,9 +16,17 @@ public class OrderOutput {
     private final BigDecimal quantity;
     private final OrderStatus status;
     private final LocalDateTime createdAt;
+    private final UUID idempotencyKey;
+    private final boolean alreadyExisted;
 
     public OrderOutput(UUID id, UUID portfolioId, UUID assetId, OrderType type,
                        BigDecimal quantity, OrderStatus status, LocalDateTime createdAt) {
+        this(id, portfolioId, assetId, type, quantity, status, createdAt, null, false);
+    }
+
+    public OrderOutput(UUID id, UUID portfolioId, UUID assetId, OrderType type,
+                       BigDecimal quantity, OrderStatus status, LocalDateTime createdAt,
+                       UUID idempotencyKey, boolean alreadyExisted) {
         this.id = id;
         this.portfolioId = portfolioId;
         this.assetId = assetId;
@@ -26,6 +34,8 @@ public class OrderOutput {
         this.quantity = quantity;
         this.status = status;
         this.createdAt = createdAt;
+        this.idempotencyKey = idempotencyKey;
+        this.alreadyExisted = alreadyExisted;
     }
 
     public UUID getId() { return id; }
@@ -35,4 +45,6 @@ public class OrderOutput {
     public BigDecimal getQuantity() { return quantity; }
     public OrderStatus getStatus() { return status; }
     public LocalDateTime getCreatedAt() { return createdAt; }
+    public UUID getIdempotencyKey() { return idempotencyKey; }
+    public boolean isAlreadyExisted() { return alreadyExisted; }
 }
