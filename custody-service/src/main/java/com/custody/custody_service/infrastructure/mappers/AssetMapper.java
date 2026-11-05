@@ -8,10 +8,10 @@ public class AssetMapper {
     private AssetMapper() {}
 
     public static AssetEntity toEntity(Asset asset) {
-        return new AssetEntity(asset.getId(), asset.getTicker(), asset.getName());
+        return new AssetEntity(asset.getId(), asset.getTicker(), asset.getName(), asset.getScale());
     }
 
     public static Asset toDomain(AssetEntity entity) {
-        return new Asset(entity.getId(), entity.getTicker(), entity.getName());
+        return new Asset(entity.getId(), entity.getTicker(), entity.getName(), entity.getScale());
     }
 }

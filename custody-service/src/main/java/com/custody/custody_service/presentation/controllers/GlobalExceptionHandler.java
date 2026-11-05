@@ -1,8 +1,10 @@
 package com.custody.custody_service.presentation.controllers;
 
 import com.custody.custody_service.domain.exceptions.BusinessException;
+import com.custody.custody_service.domain.exceptions.IdempotencyKeyConflictException;
 import com.custody.custody_service.domain.exceptions.InsufficientBalanceException;
 import com.custody.custody_service.domain.exceptions.InvalidQuantityException;
+import com.custody.custody_service.domain.exceptions.InvalidScaleException;
 import com.custody.custody_service.domain.exceptions.PortfolioAlreadyExistsException;
 import com.custody.custody_service.domain.exceptions.ResourceNotFoundException;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -10,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
+import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -62,6 +65,33 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, Object>> handleOptimisticLock(ObjectOptimisticLockingFailureException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of(
                 "error", "Conflito de concorrência: a posição foi modificada por outra operação. Tente novamente.",
+                "timestamp", LocalDateTime.now().toString()
+        ));
+    }
+
+    // 409 — reuso de Idempotency-Key com parâmetros diferentes
+    @ExceptionHandler(IdempotencyKeyConflictException.class)
+    public ResponseEntity<Map<String, Object>> handleIdempotencyConflict(IdempotencyKeyConflictException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of(
+                "error", ex.getMessage(),
+                "timestamp", LocalDateTime.now().toString()
+        ));
+    }
+
+    // 409 — lock pessimista (transferência concorrente)
+    @ExceptionHandler(PessimisticLockingFailureException.class)
+    public ResponseEntity<Map<String, Object>> handlePessimisticLock(PessimisticLockingFailureException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of(
+                "error", "Conflito de concorrência: registro bloqueado por outra operação. Tente novamente.",
+                "timestamp", LocalDateTime.now().toString()
+        ));
+    }
+
+    // 422 — escala do quantity excede a escala configurada do ativo
+    @ExceptionHandler(InvalidScaleException.class)
+    public ResponseEntity<Map<String, Object>> handleInvalidScale(InvalidScaleException ex) {
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(Map.of(
+                "error", ex.getMessage(),
                 "timestamp", LocalDateTime.now().toString()
         ));
     }

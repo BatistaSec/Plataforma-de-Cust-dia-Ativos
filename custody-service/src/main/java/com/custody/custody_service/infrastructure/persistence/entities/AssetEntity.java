@@ -18,12 +18,22 @@ public class AssetEntity implements java.io.Serializable {
     @Column(nullable = false)
     private String name;
 
+    @Column(nullable = false)
+    private Integer scale = 5;
+
     public AssetEntity() {}
 
     public AssetEntity(UUID id, String ticker, String name) {
         this.id = id;
         this.ticker = ticker;
         this.name = name;
+    }
+
+    public AssetEntity(UUID id, String ticker, String name, Integer scale) {
+        this.id = id;
+        this.ticker = ticker;
+        this.name = name;
+        this.scale = scale != null ? scale : 5;
     }
 
     public UUID getId() { return id; }
@@ -34,4 +44,7 @@ public class AssetEntity implements java.io.Serializable {
 
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
+
+    public Integer getScale() { return scale; }
+    public void setScale(Integer scale) { this.scale = scale; }
 }
