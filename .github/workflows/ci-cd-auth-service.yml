@@ -152,7 +152,7 @@ jobs:
     name: "4 · Docker Build & Scan + 5 · Push ECR"
     runs-on: ubuntu-latest
     needs: [test, security]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && vars.ENABLE_AWS_DEPLOY == 'true'
     timeout-minutes: 20
     outputs:
       image: ${{ steps.push.outputs.image }}
@@ -217,7 +217,7 @@ jobs:
     name: "6 · Terraform Plan & Apply"
     runs-on: ubuntu-latest
     needs: docker
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && vars.ENABLE_AWS_DEPLOY == 'true'
     timeout-minutes: 20
     defaults:
       run:
@@ -255,7 +255,7 @@ jobs:
     name: "7 · Deploy ECS Fargate"
     runs-on: ubuntu-latest
     needs: terraform
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && vars.ENABLE_AWS_DEPLOY == 'true'
     timeout-minutes: 15
     outputs:
       previous-task-def: ${{ steps.snapshot.outputs.previous-task-def }}
@@ -311,7 +311,7 @@ jobs:
     name: "8 · Smoke Tests & Observability"
     runs-on: ubuntu-latest
     needs: deploy
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && vars.ENABLE_AWS_DEPLOY == 'true'
     timeout-minutes: 5
     outputs:
       smoke-passed: ${{ steps.result.outputs.passed }}
@@ -379,7 +379,8 @@ jobs:
     if: |
       always() &&
       needs.smoke.result == 'failure' &&
-      needs.deploy.result == 'success'
+      needs.deploy.result == 'success' &&
+      vars.ENABLE_AWS_DEPLOY == 'true'
     timeout-minutes: 10
     steps:
       - name: Configure AWS credentials
