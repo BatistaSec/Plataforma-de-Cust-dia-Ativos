@@ -17,6 +17,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -197,7 +198,7 @@ class CreateOrderUseCaseIntegrationTest {
     }
 
     @Test
-    @DisplayName("Replay with same idempotencyKey returns 200 OK with same order")
+    @DisplayName("Replay with same Idempotency-Key returns 200 OK with same order")
     void replayWithSameIdempotencyKey() {
         PortfolioEntity portfolio = createPortfolio();
         AssetEntity asset = createAsset("PETR4");
@@ -207,17 +208,20 @@ class CreateOrderUseCaseIntegrationTest {
                 "portfolioId", portfolio.getId(),
                 "assetId", asset.getId(),
                 "type", "BUY",
-                "quantity", new BigDecimal("10"),
-                "idempotencyKey", idempotencyKey
+                "quantity", new BigDecimal("10")
         );
 
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Idempotency-Key", idempotencyKey.toString());
+        HttpEntity<Map<String, Object>> httpEntity = new HttpEntity<>(request, headers);
+
         ResponseEntity<CustodyOrderResponse> response1 = restTemplate.postForEntity(
-                "/api/v1/custody/orders", request, CustodyOrderResponse.class);
+                "/api/v1/custody/orders", httpEntity, CustodyOrderResponse.class);
         assertEquals(HttpStatus.CREATED, response1.getStatusCode());
         UUID orderId = response1.getBody().getId();
 
         ResponseEntity<CustodyOrderResponse> response2 = restTemplate.postForEntity(
-                "/api/v1/custody/orders", request, CustodyOrderResponse.class);
+                "/api/v1/custody/orders", httpEntity, CustodyOrderResponse.class);
         assertEquals(HttpStatus.OK, response2.getStatusCode());
         assertEquals(orderId, response2.getBody().getId());
 

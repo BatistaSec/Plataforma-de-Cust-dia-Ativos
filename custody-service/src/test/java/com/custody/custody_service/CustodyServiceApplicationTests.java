@@ -166,8 +166,8 @@ class CustodyServiceApplicationTests {
 		);
 
 		ResponseEntity<CustodyOrderResponse> response = restTemplate.postForEntity(
-				"/api/v1/custody/orders", 
-				request, 
+				"/api/v1/custody/orders",
+				request,
 				CustodyOrderResponse.class
 		);
 
@@ -175,5 +175,6 @@ class CustodyServiceApplicationTests {
 		assertNotNull(response.getBody());
 		assertEquals(OrderType.BUY, response.getBody().getType());
 		assertEquals(0, new BigDecimal("10.5").compareTo(response.getBody().getQuantity()));
+		assertNotNull(response.getHeaders().getFirst("Idempotency-Key"));
 	}
 }
