@@ -41,6 +41,15 @@ Autenticação e registro de usuários. Gera tokens JWT com o `userId` como clai
 ### 💼 Custody Service — porta `8082`
 Core do negócio. Gerencia portfólios, ativos e ordens. Usa Redis para cache e publica `OrderEvent` no Kafka ao criar uma ordem.
 
+**Integridade financeira:**
+- Bloqueio de saldo insuficiente em ordens SELL (HTTP 422)
+- Lock otimista via `@Version` em `PortfolioAssetEntity` (HTTP 409 em conflito)
+- Idempotência via header `Idempotency-Key` com hash SHA-256 e `responseSnapshot` (HTTP 200 em replay, 409 se body diferente)
+- Ledger contábil: `LedgerTransaction` agrupa `LedgerEntry` (DEBIT/CREDIT) — imutáveis (`@Column(updatable=false)`)
+- Escala decimal configurável por ativo (campo `scale`, default 5)
+- Histórico imutável de movimentações em `asset_movements`
+- `BigDecimal` em todas as quantidades (precision=38, scale=5)
+
 ### ⚙️ Event Processor — porta `8083`
 Worker assíncrono. Consome `custody-orders-topic`, aplica idempotência (constraint única por `orderId`), processa a ordem, persiste e publica `ProcessedOrderEvent`. Retry automático com DLT.
 
@@ -60,13 +69,14 @@ Auditoria de negócio. Consome os dois tópicos Kafka e registra **todos os even
 | `POST` | `/api/v1/auth/login` | `{ "email": "", "password": "" }` |
 
 ### 💼 Custody Service
-| Método | Endpoint | Body |
+| Método | Endpoint | Body / Headers |
 |---|---|---|
 | `POST` | `/api/v1/custody/portfolios` | `{ "userId": "uuid" }` |
 | `POST` | `/api/v1/custody/portfolios/user` | `{ "userId": "uuid" }` |
 | `POST` | `/api/v1/custody/assets` | `{ "ticker": "PETR4", "name": "Petrobras" }` |
 | `GET`  | `/api/v1/custody/assets` | — |
-| `POST` | `/api/v1/custody/orders` | `{ "portfolioId": "uuid", "assetId": "uuid", "type": "BUY", "quantity": 10.5 }` |
+| `POST` | `/api/v1/custody/orders` | Header: `Idempotency-Key: uuid` (opcional) · Body: `{ "portfolioId": "uuid", "assetId": "uuid", "type": "BUY", "quantity": 10.5 }` |
+| `GET`  | `/api/v1/custody/ledger/statement` | Query: `portfolioId` (obrigatório), `assetId` (opcional), `page`, `size` |
 
 ### ⚙️ Event Processor
 | Método | Endpoint | Body |
@@ -159,12 +169,14 @@ Pipeline de **9 etapas** por microsserviço, ativado por push em `main` ou PR:
 | 1 — Validate Branch (título do PR) | ✅ | ✅ |
 | 2 — Build + Testes | ✅ | ✅ |
 | 3 — Security: Gitleaks + Trivy (filesystem) | ✅ | ✅ |
-| 4 — Docker Build + Trivy (imagem) | ✅ | ❌ |
-| 5 — Push ECR (SHA + latest) | ✅ | ❌ |
-| 6 — Terraform Plan & Apply | ✅ | ❌ |
-| 7 — Deploy ECS Fargate | ✅ | ❌ |
-| 8 — Smoke Tests + health check | ✅ | ❌ |
-| 9 — Rollback automático (se smoke falhar) | ✅ | ❌ |
+| 4 — Docker Build + Trivy (imagem) | 🔒 `ENABLE_AWS_DEPLOY` | ❌ |
+| 5 — Push ECR (SHA + latest) | 🔒 `ENABLE_AWS_DEPLOY` | ❌ |
+| 6 — Terraform Plan & Apply | 🔒 `ENABLE_AWS_DEPLOY` | ❌ |
+| 7 — Deploy ECS Fargate | 🔒 `ENABLE_AWS_DEPLOY` | ❌ |
+| 8 — Smoke Tests + health check | 🔒 `ENABLE_AWS_DEPLOY` | ❌ |
+| 9 — Rollback automático (se smoke falhar) | 🔒 `ENABLE_AWS_DEPLOY` | ❌ |
+
+> **🔒** As etapas 4–9 só executam se a variável `ENABLE_AWS_DEPLOY=true` estiver configurada em **Settings → Secrets and variables → Actions → Variables**. CI (build, testes, security) roda sempre.
 
 Workflows: `.github/workflows/ci-cd-<serviço>.yml`  
 Secrets necessários: `.github/SECRETS.md`
@@ -179,12 +191,18 @@ O projeto usa **OpenSpec 1.15.0** para documentar e implementar funcionalidades 
 openspec/
 ├── config.yaml                    ← regras do projeto para a IA
 ├── specs/                         ← specs consolidadas por capacidade
+│   ├── ci-cd/
+│   └── custody/
+│       └── integridade-financeira/spec.md
 └── changes/                       ← features em andamento ou arquivadas
-    └── consulta-paginada-eventos-auditoria/   ← em andamento
-        ├── proposal.md
-        ├── specs/audit/consulta-paginada/spec.md
-        ├── design.md
-        └── tasks.md
+    ├── archive/
+    │   └── 2026-11-03-integridade-financeira-transferencias/  ← arquivada (PR #40)
+    ├── ledger-financeiro/                                    ← em andamento (PR #43)
+    │   ├── proposal.md
+    │   ├── specs/custody/ledger-financeiro/spec.md
+    │   ├── design.md
+    │   └── tasks.md
+    └── validar-ci-cd-etapas-1-2-3/                           ← em andamento
 ```
 
 **Comandos disponíveis no Kiro:**
@@ -253,3 +271,5 @@ projeto-portifolio/
 - [x] Fase 8 — CI/CD (GitHub Actions — 9 etapas com rollback automático)
 - [x] Fase 9 — Infraestrutura AWS (Terraform: VPC, RDS, MSK, ECS Fargate, ALB)
 - [x] Fase 10 — Spec-Driven Development (OpenSpec + Kiro)
+- [x] Fase 11 — Integridade Financeira (bloqueio de saldo, lock otimista, idempotência, histórico imutável) — PR #40
+- [ ] Fase 12 — Ledger Financeiro (partidas dobradas, idempotência via header, escala por ativo, extrato) — PR #43
