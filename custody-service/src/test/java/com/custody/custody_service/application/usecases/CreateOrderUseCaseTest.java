@@ -181,9 +181,19 @@ class CreateOrderUseCaseTest {
                 expectedHash, "{}", LocalDateTime.now());
         when(idempotencyRecordRepository.findByIdempotencyKey(idempotencyKey)).thenReturn(Optional.of(record));
 
-        OrderOutput storedOutput = new OrderOutput(orderId, portfolioId, assetId, OrderType.BUY,
-                new BigDecimal("10"), OrderStatus.PENDING, LocalDateTime.now(), idempotencyKey, false);
-        when(objectMapper.readValue(anyString(), eq(OrderOutput.class))).thenReturn(storedOutput);
+        // Create JsonNode for deserialization (use real ObjectMapper to build node)
+        com.fasterxml.jackson.databind.ObjectMapper realMapper = new com.fasterxml.jackson.databind.ObjectMapper();
+        com.fasterxml.jackson.databind.node.ObjectNode node = realMapper.createObjectNode();
+        node.put("id", orderId.toString());
+        node.put("portfolioId", portfolioId.toString());
+        node.put("assetId", assetId.toString());
+        node.put("type", "BUY");
+        node.put("quantity", "10");
+        node.put("status", "PENDING");
+        node.put("idempotencyKey", idempotencyKey.toString());
+        node.put("createdAt", LocalDateTime.now().toString());
+        node.put("alreadyExisted", false);
+        when(objectMapper.readTree(anyString())).thenReturn(node);
 
         CreateOrderInput input = new CreateOrderInput(portfolioId, assetId, OrderType.BUY, new BigDecimal("10"));
         OrderOutput output = useCase.execute(input, idempotencyKey);

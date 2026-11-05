@@ -32,6 +32,7 @@ import com.custody.custody_service.infrastructure.mappers.AssetMapper;
 import com.custody.custody_service.infrastructure.mappers.PortfolioMapper;
 import com.custody.custody_service.infrastructure.persistence.entities.PortfolioAssetEntity;
 import com.custody.custody_service.infrastructure.persistence.repositories.SpringDataPortfolioAssetRepository;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -233,11 +234,17 @@ public class CreateOrderUseCase {
 
     private OrderOutput deserializeSnapshot(String snapshot, boolean alreadyExisted) {
         try {
-            OrderOutput parsed = objectMapper.readValue(snapshot, OrderOutput.class);
+            JsonNode node = objectMapper.readTree(snapshot);
             return new OrderOutput(
-                    parsed.getId(), parsed.getPortfolioId(), parsed.getAssetId(),
-                    parsed.getType(), parsed.getQuantity(), parsed.getStatus(),
-                    parsed.getCreatedAt(), parsed.getIdempotencyKey(), alreadyExisted
+                    UUID.fromString(node.get("id").asText()),
+                    UUID.fromString(node.get("portfolioId").asText()),
+                    UUID.fromString(node.get("assetId").asText()),
+                    OrderType.valueOf(node.get("type").asText()),
+                    new BigDecimal(node.get("quantity").asText()),
+                    OrderStatus.valueOf(node.get("status").asText()),
+                    LocalDateTime.parse(node.get("createdAt").asText()),
+                    UUID.fromString(node.get("idempotencyKey").asText()),
+                    alreadyExisted
             );
         } catch (Exception e) {
             throw new RuntimeException("Erro ao deserializar resposta", e);
